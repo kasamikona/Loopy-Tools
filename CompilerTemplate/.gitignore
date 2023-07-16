@@ -1,0 +1,5 @@
+obj/
+bin/
+*.bin
+*.nib
+*.o
