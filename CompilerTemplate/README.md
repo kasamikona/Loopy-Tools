@@ -54,7 +54,7 @@ A basic rundown of the files is as follows:
 - fixsum.py: A Python script used by the makefile to calculate and insert the (non-critical) ROM checksum into the header.
 - src/startup.s: Raw assembly code to initialize the system, set up the vector table, clear RAM and call main().
 - src/main.c: The main program. It sets up a serial connection, prints to it, and then echoes anything it receives.
-- src/loopy.h: A header file containing Loopy-specific definitions such as F_CPU, also includes shregs.h.
 - src/vectors.c: The interrupt vector table which points interrupts to C functions. Unused vectors are set up to either do nothing or halt.
-- src/serial.c(h): A basic serial interface layer with blocking writes and buffered reads, similar to Arduino style.
-- src/shregs.h: A hopefully complete list of definitions for SH7021 on-chip registers for the various peripherals.
+- src/serial.c, include/serial.h: A basic serial interface layer with blocking writes and buffered reads, similar to Arduino style.
+- include/loopy.h: A header file containing Loopy-specific definitions such as F_CPU, also includes shregs.h.
+- include/shregs.h: A hopefully complete list of definitions for SH7021 on-chip registers for the various peripherals.

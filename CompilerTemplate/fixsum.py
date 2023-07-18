@@ -9,4 +9,3 @@ with open(sys.argv[1],"r+b") as f:
 		s = (s+struct.unpack(">H", check_data[i:i+2])[0])&0xFFFFFFFF
 	f.seek(8)
 	f.write(struct.pack(">L", s))
-

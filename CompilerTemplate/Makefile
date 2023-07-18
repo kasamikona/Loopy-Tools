@@ -30,11 +30,11 @@ RMDIR  = rm -rf
 FIXSUM = /usr/bin/env python3 ./fixsum.py
 
 # File/dir locations
-SRCDIR  = ./src
-INCLUDE = ./include
-OBJDIR  = ./obj
-ROM     = ./rom.bin
-ROMSWP  = ./rom.nib
+SRCDIR = ./src
+INCDIR = ./include
+OBJDIR = ./obj
+ROM    = ./rom.bin
+ROMSWP = ./rom.nib
 
 # Below here probably doesn't need to be touched
 
@@ -46,7 +46,7 @@ OBJS_S  = $(patsubst $(SRCDIR)/%.s,$(OBJDIR)/%.o,$(SRCS_S))
 
 SIZEDEFS  = -Wl,--defsym=ROMSIZE=$(ROMSIZE),--defsym=SRAMSIZE=$(SRAMSIZE),--defsym=STACKSIZE=$(STACKSIZE),--defsym=ROMPADDING=$(ROMPADDING)
 
-CFLAGS  = -m1 -Os -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCLUDE) -flto
+CFLAGS  = -m1 -Os -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR) -flto
 LDFLAGS = $(SIZEDEFS) -Wl,-T loopy.ld -nostartfiles
 LDLIBS  = -lm
 

@@ -37,7 +37,6 @@ int main() {
     serialPrint(message);
     
     while(1) {
-    	if(serialAvailable()) serialWrite(serialRead());
+        if(serialAvailable()) serialWrite(serialRead());
     }
 }
-
