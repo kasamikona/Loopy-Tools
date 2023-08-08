@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "LoopyCart")(type "KiCad")(uri "${KIPRJMOD}/Libraries/LoopyCart.kicad_sym")(options "")(descr ""))
+)
