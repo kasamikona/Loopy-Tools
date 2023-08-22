@@ -16,4 +16,3 @@ static void maskInterrupts(int mask) {
 }
 
 #endif
-

@@ -5,9 +5,13 @@ With that said, this is *technically* a fully functional compiler setup.
 If you have a flash cart, you can get this code running on your Loopy.
 The code provided is designed for testing with the serial mod described in the SerialDumper section of this repo.  
 
-Additional disclaimer: I just barely know what I'm doing, this is by no means a robust setup.
-Things will probably break. Feel free to let me know through issues, PRs etc.
-And yes, I've already tried to add C++ support and it didn't go well. Maybe in the future.  
+Additional disclaimer: This is by no means a robust setup. Things will probably break.
+Feel free to let me know through issues, PRs etc.
+I've already tried to add C++ support and it didn't go well. Please wait for a better toolchain.  
+
+**I am waiting on a proper toolchain that is currently being set up.**
+The code here will be turned into a HAL designed to work alongside that toolchain when available.
+There will be no further significant changes to the preliminary toolchain included/described here.  
 
 ## Prerequisites
 
