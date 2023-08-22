@@ -9,20 +9,18 @@ Additional disclaimer: This is by no means a robust setup. Things will probably 
 Feel free to let me know through issues, PRs etc.
 I've already tried to add C++ support and it didn't go well. Please wait for a better toolchain.  
 
-**I am waiting on a proper toolchain that is currently being set up.**
+**I am waiting on a proper build toolchain that is currently being set up.**
 The code here will be turned into a HAL designed to work alongside that toolchain when available.
 There will be no further significant changes to the preliminary toolchain included/described here.  
 
 ## Prerequisites
 
-You first need to set up a `sh-elf-gcc` toolchain. For Linux, follow the installation guide at
-[steven741/dreamcast-cpp-template](https://github.com/steven741/dreamcast-cpp-template)
-(TODO: move those instructions here).
-Don't worry about setting up any Dreamcast-specific stuff, you won't need that.
-You can use the latest versions of each package (gcc, binutils, newlib), they seemed to work in my testing.  
+You first need to set up a SuperH GCC toolchain. For Linux:
+1. Install the [Wonderful Toolchain wf-pacman](https://wonderful.asie.pl/docs/getting-started/)
+2. `wf-pacman -S toolchain-gcc-sh-elf`
+3. `export PATH=/opt/wonderful/toolchain/gcc-sh-elf/bin:$PATH`
 
-If you're on Windows I suggest using a VM, though WSL2 probably also works.
-A native Windows toolchain probably isn't happening any time soon.  
+If you're on Windows I suggest using a Linux VM or WSL2 as Wonderful Toolchain is currently Linux only.  
 
 For the time being, you also need Python 3 installed if you want the checksum fixer script to run.
 It will run automatically as part of compilation.
