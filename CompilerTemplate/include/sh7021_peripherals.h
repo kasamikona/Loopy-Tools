@@ -1,5 +1,5 @@
-#ifndef _INC_SHREGS_H_
-#define _INC_SHREGS_H_
+#ifndef _INC_SH7021_PERIPHERALS_H_
+#define _INC_SH7021_PERIPHERALS_H_
 
 #include <stdint.h>
 

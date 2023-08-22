@@ -3,7 +3,7 @@
 
 #define F_CPU 16000000
 
-#include "shregs.h"
+#include "sh7021_peripherals.h"
 
 static void maskInterrupts(int mask) {
     uint32_t sr;
