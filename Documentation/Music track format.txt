@@ -1,0 +1,119 @@
+Call BiosPlayBGM(&soundState, unused (u16), trackIndex (u16), &trackList)
+Track list is a list of pointers to track data.
+
+Track structure:
+- Header
+- Data segments...
+- Track change/end marker or loop marker
+
+Track header:
+- Timer rate (u16); set with prescaler F_CPU/8
+- Unknown (u16); written to 0x0C080000, echo parameter?
+
+Data segment:
+- Delay (u8)
+- Length (u8) < 0xFE
+- MIDI data...
+
+Track change/end marker:
+- 0xFE
+- Next track index (u16); 0xFFFF=end
+
+Track loop marker:
+- 0xFF
+
+
+Example boot logo track data:
+87 A2 Timer rate
+08 A0 Unknown parameter
+
+00 Delay 0
+0F MidiData 15 bytes
+C0 60 ProgramChange Channel=0 Instrument=60h
+90 38 40 NoteOn Channel=0 Note=38h Velocity=40h
+C1 5C ProgramChange Channel=1 Instrument=5Ch
+91 38 40 NoteOn Channel=1 Note=38h Velocity=40h
+C3 50 ProgramChange Channel=3 Instrument=50h
+93 38 40 NoteOn Channel=3 Note=38h Velocity=40h
+
+04 Delay 4
+03 MidiData 3 bytes
+90 38 00 NoteOn Channel=0 Note=38h Velocity=OFF
+
+07 Delay 7
+03 MidiData 3 bytes
+91 38 00 NoteOn Channel=1 Note=38h Velocity=OFF
+
+01 Delay 1
+06 MidiData 6 bytes
+90 3C 40 NoteOn Channel=0 Note=3Ch Velocity=40h
+91 3C 40 NoteOn Channel=1 Note=3Ch Velocity=40h
+
+04 Delay 4
+03 MidiData 3 bytes
+90 3C 00 NoteOn Channel=0 Note=3Ch Velocity=OFF
+
+05 Delay 5
+03 MidiData 3 bytes
+91 3C 00 NoteOn Channel=1 Note=3Ch Velocity=OFF
+
+03 Delay 3
+06 MidiData 6 bytes
+90 3F 40 NoteOn Channel=0 Note=3Fh Velocity=40h
+91 3F 40 NoteOn Channel=1 Note=3Fh Velocity=40h
+
+04 Delay 4
+03 MidiData 3 bytes
+90 3F 00 NoteOn Channel=0 Note=3Fh Velocity=OFF
+
+02 Delay 2
+03 MidiData 3 bytes
+91 3F 00 NoteOn Channel=1 Note=3Fh Velocity=OFF
+
+06 Delay 6
+06 MidiData 6 bytes
+90 46 40 NoteOn Channel=0 Note=46h Velocity=40h
+91 46 40 NoteOn Channel=1 Note=46h Velocity=40h
+
+04 Delay 4
+03 MidiData 3 bytes
+90 46 00 NoteOn Channel=0 Note=46h Velocity=OFF
+
+04 Delay 4
+03 MidiData 3 bytes
+91 46 00 NoteOn Channel=1 Note=46h Velocity=OFF
+
+04 Delay 4
+0C MidiData 12 bytes
+90 4B 40 NoteOn Channel=0 Note=4Bh Velocity=40h
+91 4B 40 NoteOn Channel=1 Note=4Bh Velocity=40h
+93 38 00 NoteOn Channel=3 Note=38h Velocity=OFF
+93 3A 40 NoteOn Channel=3 Note=3Ah Velocity=40h
+
+04 Delay 4
+03 MidiData 3 bytes
+90 4B 00 NoteOn Channel=0 Note=4Bh Velocity=OFF
+
+03 Delay 3
+03 MidiData 3 bytes
+91 4B 00 NoteOn Channel=1 Note=4Bh Velocity=OFF
+
+05 Delay 5
+06 MidiData 6 bytes
+90 4F 40 NoteOn Channel=0 Note=4Fh Velocity=40h
+91 4F 40 NoteOn Channel=1 Note=4Fh Velocity=40h
+
+04 Delay 4
+03 MidiData 3 bytes
+90 4F 00 NoteOn Channel=0 Note=4Fh Velocity=OFF
+
+04 Delay 4
+03 MidiData 3 bytes
+91 4F 00 NoteOn Channel=1 Note=4Fh Velocity=OFF
+
+8D Delay 141
+03 MidiData 3 bytes
+93 3A 00 NoteOn Channel=3 Note=3Ah Velocity=OFF
+
+00 Delay 0
+FE FF FF TrackChange Index=STOP
