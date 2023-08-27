@@ -1,4 +1,4 @@
-Call BiosPlayBGM(&soundState, unused (u16), trackIndex (u16), &trackList)
+Call BiosPlayBGM(&soundState, unused (u32), trackIndex (u32), &trackList)
 Track list is a list of pointers to track data.
 
 Track structure:
