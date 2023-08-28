@@ -1,12 +1,13 @@
 == Electrolytic Capacitors ==
 C501 470uF 6.3v
 C502 330uF 6.3v
-C504 100uF 10v
+C504 100uF 10v (POLARITY MARKED WRONG)
 C509 1000uF 35v
 C522,C524,C526,C527 470uF 10v
 C532 100uF 35v
 C533 100uF 6.3v
 
+IMPORTANT: install C504 opposite to marking or remove to avoid confusion
 C501,C502,C533 low ESR recommended
 C509 must NOT be low ESR
 6.3v can be replaced with 10v, or 16v if necessary
