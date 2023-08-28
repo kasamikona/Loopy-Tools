@@ -61,7 +61,7 @@ CC 12pin soldered
 
 
 == Semiconductors ==
-IC501 NJM2246 3-input integrated video switch
+IC501 NJM2246D 3-input integrated video switch
 IC502 NJM2360AD DC-DC converter control IC
 D501 S2003 schottky rectifier diode? (replace with 1N4007 or 1N5819)
 D502 Unknown schottky diode (1A?)
