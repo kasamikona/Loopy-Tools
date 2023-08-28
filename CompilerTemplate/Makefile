@@ -48,7 +48,7 @@ OBJS_S  = $(patsubst $(SRCDIR)/%.s,$(OBJDIR)/%.o,$(SRCS_S))
 
 SIZEDEFS  = -Wl,--defsym=ROMSIZE=$(ROMSIZE),--defsym=SRAMSIZE=$(SRAMSIZE),--defsym=STACKSIZE=$(STACKSIZE),--defsym=ROMPADDING=$(ROMPADDING)
 
-CFLAGS  = -m1 -Os -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR) -flto
+CFLAGS  = -m1 -mrenesas -Os -flto -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR)
 LDFLAGS = $(SIZEDEFS) -Wl,-T $(LDSCRIPT) -nostartfiles
 LDLIBS  = -lm
 

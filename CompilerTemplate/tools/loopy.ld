@@ -44,7 +44,8 @@ SECTIONS {
   } >ROM =0xFF
   
   .bss (NOLOAD) : {
-    . = ALIGN(4);
+    /* Reserve low RAM for BIOS */
+    . = 0x100;
     __bss_start = . ;
     *(.bss .bss.*)
     *(COMMON)
