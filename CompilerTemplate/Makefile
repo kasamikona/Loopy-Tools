@@ -1,5 +1,5 @@
-# Early makefile for Casio Loopy (kasamikona, July 2023)
-# Based on sh-elf-gcc + newlib
+# Early makefile for Casio Loopy (Kasami, August 2023)
+# Based on Wonderful Toolchain package for SuperH
 
 # Normal use: "make clean && make"
 # Generate byteswapped ROM for bad flashers: "make clean && make swapped"
@@ -17,11 +17,12 @@ STACKSIZE = 2K
 # 1: pad to ROMSIZE
 ROMPADDING = 0
 
-# Compilation progs
-CC  = sh-elf-gcc
-LD  = sh-elf-ld
-OBJ = sh-elf-objcopy
-#NM  = sh-elf-nm
+# Toolchain programs
+WONDERFUL_TOOLCHAIN ?= /opt/wonderful
+TOOLBIN = $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-sh-elf/bin
+CC  = $(TOOLBIN)/sh-elf-gcc
+LD  = $(TOOLBIN)/sh-elf-ld
+OBJ = $(TOOLBIN)/sh-elf-objcopy
 
 # File manipulation progs
 MV     = mv
@@ -36,6 +37,10 @@ OBJDIR = ./obj
 ROM    = ./rom.bin
 ROMSWP = ./rom.nib
 
+# Basic compile options
+OPTIMIZE = -Os
+LIBS = -lm
+
 # Below here probably doesn't need to be touched
 
 LDSCRIPT = ./tools/loopy.ld
@@ -48,9 +53,8 @@ OBJS_S  = $(patsubst $(SRCDIR)/%.s,$(OBJDIR)/%.o,$(SRCS_S))
 
 SIZEDEFS  = -Wl,--defsym=ROMSIZE=$(ROMSIZE),--defsym=SRAMSIZE=$(SRAMSIZE),--defsym=STACKSIZE=$(STACKSIZE),--defsym=ROMPADDING=$(ROMPADDING)
 
-CFLAGS  = -m1 -mrenesas -Os -flto -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR)
-LDFLAGS = $(SIZEDEFS) -Wl,-T $(LDSCRIPT) -nostartfiles
-LDLIBS  = -lm
+CFLAGS  = -m1 -mrenesas $(OPTIMIZE) -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR) -flto
+LDFLAGS = $(SIZEDEFS) -Wl,-T $(LDSCRIPT) -nostartfiles $(LIBS)
 
 .PHONY: clean rom swapped
 
@@ -63,7 +67,7 @@ $(ROMSWP): $(ROM)
 	$(OBJ) --reverse-bytes=2 -I binary -O binary $(ROM) $(ROMSWP)
 
 $(ROM): $(OBJS_S) $(OBJS_C)
-	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+	$(CC) $(LDFLAGS) $^ -o $@
 	$(FIXSUM) $(ROM)
 ifeq ($(ROMPADDING), 1)
 	$(OBJ) --pad-to=$(shell numfmt --from=iec $(ROMSIZE)) -I binary -O binary $(ROM)
