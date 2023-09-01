@@ -7,16 +7,15 @@ C522,C524,C526,C527 470uF 10v
 C532 100uF 35v
 C533 100uF 6.3v
 
-IMPORTANT: install C504 opposite to marking or remove to avoid confusion
-C501,C502,C533 low ESR recommended
-C509 must NOT be low ESR
-6.3v can be replaced with 10v, or 16v if necessary
-10v can be replaced with 16v
-330uF can be replaced with 470uF
+IMPORTANT: install C504 opposite to marking, or remove and cover holes to avoid confusion.
+C509,C532 should NOT be low ESR. Low ESR is recommended for all others but not required.
+C501 recommended to be replaced with a wire link.
+C502,C533 can be substituted with 470uF for improved video quality.
 
-Cheap list:
+6.3v can be substituted with 10v, or 16v if necessary. 10v can be substituted with 16v.
+
+Cheap recap shopping list:
 6x 470uF 10v LowESR
-2x 100uF 16v LowESR
 1x 100uF 35v
 1x 1000uF 35v
 
@@ -63,7 +62,7 @@ CC 12pin soldered
 
 == Semiconductors ==
 IC501 NJM2246D 3-input integrated video switch
-IC502 NJM2360AD DC-DC converter control IC
+IC502 NJM2360AD DC-DC converter control IC (clone of MC34063)
 D501 S2003 schottky rectifier diode? (replace with 1N4007 or 1N5819)
 D502 Unknown schottky diode (1A?)
 Q501 2SC1740 NPN switching transistor (ECB pin order)
