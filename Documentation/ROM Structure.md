@@ -7,12 +7,12 @@ Offset in bytes. ROM base is `0E000000`. Example values taken from "Dream Change
 |`000008`|Checksum; a 32bit sum of unsigned 16bit words from end of header to last word of ROM, inclusive, according to the above pointers|`F6D41645`|
 |`00000C`|Padding|`FFFFFFFF`|
 |`000010`|Pointer to first byte of SRAM|`02000000`|
-|`000014`|Pointer to last byte of SRAM\*|`02001FFF`|
+|`000014`|Pointer to last byte of SRAM|`02001FFF`|
 |`000018`|Header end marker?|`FFFFFFFE`|
-|`00001C-00007F`|Padding (sometimes contains copyright text)|`FFFFFFFF...`|
-|`000080-00024F`|Vector table, seemingly not required to be here as the ROM itself is responsible for setting VBR?|`0E000AC0...`|
-|`000250-00047F`|Padding / free space, sometimes contains small vector code|`FFFFFFFF...`|
-|`000480-ROMEND`|Entry point and rest of ROM code/data; BIOS jumps to `0E000480` to begin execution|(code)
+|`00001C-⁠00007F`|Padding (sometimes contains copyright text)|`FFFFFFFF...`|
+|`000080-⁠00024F`|Vector table, seemingly not required to be here as the ROM itself is responsible for setting VBR?|`0E000AC0...`|
+|`000250-⁠00047F`|Padding / free space, sometimes contains small vector code|`FFFFFFFF...`|
+|`000480-⁠ROMEND`|Entry point and rest of ROM code/data; BIOS jumps to `0E000480` to begin execution|(code)
 
 If SRAM first/last is outside the range `02000000-02FFFFFF`, or if last <= first, there is no SRAM.
 Otherwise physical SRAM size in bytes = `last + 1 - first`.
