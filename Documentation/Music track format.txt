@@ -16,10 +16,12 @@ Data segment:
 - MIDI data...
 
 Track change/end marker:
+- Delay (u8)
 - 0xFE
 - Next track index (u16); 0xFFFF=end
 
 Track loop marker:
+- Delay (u8)
 - 0xFF
 
 
