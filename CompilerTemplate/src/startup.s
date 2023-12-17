@@ -1,42 +1,32 @@
-    .globl start
+    .section .header.pointers
+    .long __clheader_romfirst
+    .long __clheader_romlast
+    .long 0xa5a5a5a5 /* Placeholder checksum */
+    .long 0xffffffff
+    .long __clheader_sramfirst
+    .long __clheader_sramlast
+    .long 0xfffffffe
 
     ! NOT REQUIRED, and you can put anything you want here.
     ! Can move to a separate .s file keeping the .section line.
     ! Example in the format of Wanwan header:
-!    .section .copyright
+!    .section .header.copyright
 !    .long 0
 !    .asciz "(C)1995 GAZIO All right reserved."
 !    .asciz "ver 5.51"
 
 
     .section .text.startup
-
+    .globl start
 start:
     ! Set up initial stack pointer
     mov.l stackaddr, r15
     mov #0, r0
 
-    ! Clear .bss area in memory
-    mov.l clear_bss_start, r1
-    mov.l clear_bss_end, r2
-
-clear_bss_loop:
-    mov.w r0, @r1
-    add #2, r1
-    cmp/hs r2, r1
-    bf clear_bss_loop
-
-    ! Copy .data into memory
-    mov.l copy_data_from, r1
-    mov.l copy_data_to, r2
-    mov.l copy_data_end, r3
-    
-copy_data_loop:
-    mov.w @r1+, r0
-    mov.w r0, @r2
-    add #2, r2
-    cmp/hs r3, r2
-    bf copy_data_loop
+    ! Initialize bss, data, and ctors
+    mov.l crtinitaddr, r0
+    jsr @r0
+    nop
 
     ! Setup VBR
     mov.l vbraddr, r1
@@ -53,20 +43,12 @@ terminated:
     nop
 
     .align 4
-clear_bss_start:
-    .long __bss_start
-clear_bss_end:
-    .long __bss_end
-copy_data_from:
-    .long __text_end
-copy_data_to:
-    .long __data_start
-copy_data_end:
-    .long __data_end
 stackaddr:
     .long __stack_end
 vbraddr:
-    .long __vbr_start
+    .long __vbr_link_start
+crtinitaddr:
+    .long _crt_init
 mainaddr:
     .long _main
 

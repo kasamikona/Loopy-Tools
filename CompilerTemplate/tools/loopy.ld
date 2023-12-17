@@ -1,80 +1,103 @@
 /* Import ROMSIZE, SRAMSIZE, STACKSIZE, ROMPADDING(bool) */
 /* ROMPADDING value is just used to build header properly */
 
+OUTPUT_FORMAT("elf32-sh", "elf32-sh", "elf32-sh")
 OUTPUT_ARCH(sh)
-OUTPUT_FORMAT("binary")
 
 MEMORY {
     /* Console side */
-    RAM (rwx) : ORIGIN = 0x09000000, LENGTH = 512K
+    RAM (rwx) : ORIGIN = 0x09000000, LENGTH = 512K - STACKSIZE
     /* Cartridge side */
     ROM (rwx) : ORIGIN = 0x0E000000, LENGTH = ROMSIZE
     SRAM (rwx) : ORIGIN = 0x02000000, LENGTH = SRAMSIZE
 }
 
 SECTIONS {
-  .clheader : {
-    LONG(__clheader_romfirst)
-    LONG(__clheader_romlast)
-    LONG(0xA5A5A5A5) /* Placeholder checksum */
-    LONG(-1)
-    LONG(__clheader_sramfirst)
-    LONG(__clheader_sramlast)
-    LONG(-2)
-    KEEP(*(.copyright))
+  . = ORIGIN(ROM);
+
+  .header : {
+    KEEP(*(.header.pointers))
+    KEEP(*(.header.copyright))
+
     . = 0x80;
   } >ROM =0xFF
   
-  .vectors : ALIGN(4) {
+  .vectors ALIGN(4) : SUBALIGN(4) {
     KEEP(*(.vectors))
+
     . = 0x1D0;
+
     /* 560 bytes spare in vectable, put small functions here */
     KEEP(*(.lowfunc))
     KEEP(*(.smallfunc))
-    . = 0x400;
   } >ROM =0xFF
-  
-  .text : {
-    __text_start = .;
+
+  . = ORIGIN(ROM) + 0x480;
+
+  .text ALIGN(4) : SUBALIGN(4)
+  {
     *(.text.startup)
-    *(.text .text.*)
-    *(.rodata .rodata.*)
-    . = ALIGN(4);
-    __text_end = .;
+    *(.text)
+    *(.text.*)
+
   } >ROM =0xFF
-  
-  .bss (NOLOAD) : {
-    /* Reserve low RAM for BIOS */
-    . = 0x100;
-    __bss_start = . ;
-    *(.bss .bss.*)
-    *(COMMON)
-    . = ALIGN(4);
-    __bss_end = . ;
-  } >RAM
-  
-  .init : AT(__text_end) {
-    . = ALIGN(4);
-    __data_start = .;
-    *(.data*)
+
+  __text_link_start = ADDR(.text);
+  __text_link_end = ADDR(.text) + SIZEOF(.text);
+
+  .rodata ALIGN(4) : SUBALIGN(4) {
+    *(.rodata)
+    *(.rodata.*)
+  } >ROM
+
+  __rodata_link_start = ADDR(.rodata);
+  __rodata_link_end = ADDR(.rodata) + SIZEOF(.rodata);
+
+  .ctors ALIGN(4) : SUBALIGN(4)
+  {
+    KEEP(*(.ctors))
+    KEEP(*(.ctors.*))
+  } >ROM
+
+    . = ALIGN(4096);
+
+  __ctors_link_start = ADDR(.ctors);
+  __ctors_link_end = ADDR(.ctors) + SIZEOF(.ctors);
+
+  /* reserve 256 bytes at the beginning of RAM for the BIOS */
+  . = ORIGIN(RAM) + 0x100;
+
+  .data ALIGN(4) : SUBALIGN(4) {
+    *(.data)
+    *(.data.*)
+
     KEEP(*(.ramtext))
     KEEP(*(.ramfunc))
-    . = ALIGN(4);
-    __data_end = .;
+  } >RAM AT> ROM
+
+  __data_link_start = ADDR(.data);
+  __data_link_end = ADDR(.data) + SIZEOF(.data);
+  __data_load_start = LOADADDR(.data);
+
+  .bss ALIGN(4) (NOLOAD) : SUBALIGN(4) {
+    *(.bss)
+    *(.bss.*)
+    *(COMMON)
   } >RAM
-  
-  .stack : {
-    . = ORIGIN(RAM)+LENGTH(RAM)-STACKSIZE;
-    /*__stack_start = .;*/
-    . = . + STACKSIZE;
-    __stack_end = .;
-  } >RAM
+
+  __bss_link_start = ADDR(.bss);
+  __bss_link_end = ADDR(.bss) + SIZEOF(.bss);
+
+  INCLUDE "tools/debug.ld"
 }
 
-__vbr_start = ADDR(.vectors);
-__clheader_romfirst = __vbr_start;
-__clheader_romlast = (ROMPADDING ? ORIGIN(ROM) + LENGTH(ROM) : __text_end + SIZEOF(.init)) - 2;
+__clheader_romfirst = ADDR(.vectors);
+__clheader_romlast = ORIGIN(ROM) + LENGTH(ROM) - 2;
 __clheader_sramfirst = ORIGIN(SRAM);
 __clheader_sramlast = ORIGIN(SRAM) + LENGTH(SRAM) - 1;
 
-ENTRY(__text_start);
+__stack_end = ORIGIN(RAM) + LENGTH(RAM) + STACKSIZE;
+
+__vbr_link_start = ADDR(.vectors);
+
+ENTRY(start);

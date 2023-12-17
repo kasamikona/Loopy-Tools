@@ -3,7 +3,6 @@
 
 # Normal use: "make clean && make"
 # Generate byteswapped ROM for bad flashers: "make clean && make swapped"
-
 # Memory sizes; should use K/M suffix or decimal integer
 # Cart rom, maximum 4MB addressable
 ROMSIZE = 4M
@@ -19,10 +18,14 @@ ROMPADDING = 0
 
 # Toolchain programs
 WONDERFUL_TOOLCHAIN ?= /opt/wonderful
-TOOLBIN = $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-sh-elf/bin
-CC  = $(TOOLBIN)/sh-elf-gcc
-LD  = $(TOOLBIN)/sh-elf-ld
-OBJ = $(TOOLBIN)/sh-elf-objcopy
+TOOLBIN ?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-sh-elf/bin
+#TOOLBIN = /usr/local/bin
+PREFIX ?= sh-elf-
+#PREFIX = sh1-none-elf-
+CC  = $(TOOLBIN)/$(PREFIX)gcc
+CXX = $(TOOLBIN)/$(PREFIX)g++
+LD  = $(TOOLBIN)/$(PREFIX)ld
+OBJ = $(TOOLBIN)/$(PREFIX)objcopy
 
 # File manipulation progs
 MV     = mv
@@ -39,7 +42,7 @@ ROMSWP = ./rom.nib
 
 # Basic compile options
 OPTIMIZE = -Os
-LIBS = -lm
+LIBS =
 
 # Below here probably doesn't need to be touched
 
@@ -51,10 +54,21 @@ OBJS_C  = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS_C))
 SRCS_S  = $(wildcard $(SRCDIR)/*.s)
 OBJS_S  = $(patsubst $(SRCDIR)/%.s,$(OBJDIR)/%.o,$(SRCS_S))
 
-SIZEDEFS  = -Wl,--defsym=ROMSIZE=$(ROMSIZE),--defsym=SRAMSIZE=$(SRAMSIZE),--defsym=STACKSIZE=$(STACKSIZE),--defsym=ROMPADDING=$(ROMPADDING)
+CFLAGS   = $(OPTIMIZE) -g -gdwarf-4
+CFLAGS  += -m1 -mrenesas
+CFLAGS  += -ffreestanding
+CFLAGS  += -falign-functions=4 -ffunction-sections -fdata-sections
+CFLAGS  += -fomit-frame-pointer -fno-asynchronous-unwind-tables -fno-unwind-tables
+CFLAGS  += -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR)
 
-CFLAGS  = -m1 -mrenesas $(OPTIMIZE) -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -nostartfiles -Wstack-usage=$(shell numfmt --from=iec $(STACKSIZE)) -I$(INCDIR) -flto
-LDFLAGS = $(SIZEDEFS) -Wl,-T $(LDSCRIPT) -nostartfiles $(LIBS)
+CXXFLAGS  = -std=c++23 -fno-exceptions -fno-non-call-exceptions -fno-rtti -fno-threadsafe-statics
+
+SIZEDEFS  = -Wl,--defsym=ROMSIZE=$(ROMSIZE)
+SIZEDEFS += -Wl,--defsym=SRAMSIZE=$(SRAMSIZE)
+SIZEDEFS += -Wl,--defsym=STACKSIZE=$(STACKSIZE)
+
+LDFLAGS  = -nostartfiles -nolibc -Wl,--gc-sections -Wl,--no-warn-rwx-segment -Wl,--orphan-handling=error -Wl,--print-memory-usage
+LDFLAGS += $(SIZEDEFS) -Wl,-T $(LDSCRIPT) $(LIBS)
 
 .PHONY: clean rom swapped
 
@@ -66,18 +80,26 @@ swapped: $(ROMSWP)
 $(ROMSWP): $(ROM)
 	$(OBJ) --reverse-bytes=2 -I binary -O binary $(ROM) $(ROMSWP)
 
-$(ROM): $(OBJS_S) $(OBJS_C)
+%.elf:
 	$(CC) $(LDFLAGS) $^ -o $@
+
+%.bin: %.elf
+	$(OBJ) -O binary $< $@
 	$(FIXSUM) $(ROM)
-ifeq ($(ROMPADDING), 1)
-	$(OBJ) --pad-to=$(shell numfmt --from=iec $(ROMSIZE)) -I binary -O binary $(ROM)
-endif
+# pad the rom to an even multiple of 4096 bytes; this is to work
+# around a bug in map_pagetable in LoopyMSE. If that bug is fixed,
+# this can be removed.
+	truncate -s%4096 $(ROM)
+
+rom.elf: $(OBJS_S) $(OBJS_C)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.s | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
-	
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
+	$(CXX) $(CFLAGS) $(CXXFLAGS) -c $< -o $@
+
 $(OBJDIR):
 	$(MKDIR) $@
 
