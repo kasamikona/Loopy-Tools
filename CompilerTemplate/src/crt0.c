@@ -28,7 +28,7 @@ void crt_init(void)
   end = &__data_link_end;
   load = &__data_load_start;
   while (start < end) {
-    *load++ = *start++;
+    *start++ = *load++;
   };
 
   start = &__ctors_link_start;

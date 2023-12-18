@@ -18,14 +18,14 @@ ROMPADDING = 0
 
 # Toolchain programs
 WONDERFUL_TOOLCHAIN ?= /opt/wonderful
-TOOLBIN ?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-sh-elf/bin
-#TOOLBIN = /usr/local/bin
+TOOLBIN ?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-sh-elf/bin/
+#TOOLBIN =
 PREFIX ?= sh-elf-
 #PREFIX = sh1-none-elf-
-CC  = $(TOOLBIN)/$(PREFIX)gcc
-CXX = $(TOOLBIN)/$(PREFIX)g++
-LD  = $(TOOLBIN)/$(PREFIX)ld
-OBJ = $(TOOLBIN)/$(PREFIX)objcopy
+CC  = $(TOOLBIN)$(PREFIX)gcc
+CXX = $(TOOLBIN)$(PREFIX)g++
+LD  = $(TOOLBIN)$(PREFIX)ld
+OBJ = $(TOOLBIN)$(PREFIX)objcopy
 
 # File manipulation progs
 MV     = mv
@@ -86,12 +86,8 @@ $(ROMSWP): $(ROM)
 %.bin: %.elf
 	$(OBJ) -O binary $< $@
 	$(FIXSUM) $(ROM)
-# pad the rom to an even multiple of 4096 bytes; this is to work
-# around a bug in map_pagetable in LoopyMSE. If that bug is fixed,
-# this can be removed.
-	truncate -s%4096 $(ROM)
 
-rom.elf: $(OBJS_S) $(OBJS_C)
+$(ROM:.bin=.elf): $(OBJS_S) $(OBJS_C)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.s | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@

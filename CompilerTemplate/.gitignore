@@ -3,3 +3,5 @@ bin/
 *.bin
 *.nib
 *.o
+*.sav
+*.elf

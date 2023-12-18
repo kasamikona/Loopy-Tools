@@ -92,7 +92,7 @@ SECTIONS {
 }
 
 __clheader_romfirst = ADDR(.vectors);
-__clheader_romlast = ORIGIN(ROM) + LENGTH(ROM) - 2;
+__clheader_romlast = LOADADDR(.data) + SIZEOF(.data) - 2;
 __clheader_sramfirst = ORIGIN(SRAM);
 __clheader_sramlast = ORIGIN(SRAM) + LENGTH(SRAM) - 1;
 
