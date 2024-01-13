@@ -1,8 +1,8 @@
 # Gerbers
-*/gerbers
+gerbers/
 
 # Backups
-*/*-backups
+*-backups/
 
 
 # For PCBs designed using KiCad: https://www.kicad.org/

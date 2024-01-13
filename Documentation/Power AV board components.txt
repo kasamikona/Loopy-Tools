@@ -9,13 +9,12 @@ C533 100uF 6.3v
 
 IMPORTANT: install C504 opposite to marking, or remove and cover holes to avoid confusion.
 C509,C532 should NOT be low ESR. Low ESR is recommended for all others but not required.
-C501 recommended to be replaced with a wire link.
 C502,C533 can be substituted with 470uF for improved video quality.
 
 6.3v can be substituted with 10v, or 16v if necessary. 10v can be substituted with 16v.
 
 Cheap recap shopping list:
-6x 470uF 10v LowESR
+7x 470uF 10v LowESR
 1x 100uF 35v
 1x 1000uF 35v
 

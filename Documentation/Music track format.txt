@@ -25,6 +25,9 @@ Track loop marker:
 - 0xFF
 
 
+SFX uses the format of one data segment as its entire data, no header/end. Usually delay is 0.
+
+
 Example boot logo track data:
 87 A2 Timer rate
 08 A0 Unknown parameter
