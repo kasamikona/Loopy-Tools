@@ -1,6 +1,6 @@
 CUTAWAY_TOP = true;
 CUTAWAY_SIDE = false;
-MODEL = "A";
+MODEL = "B";
 SHOW_PARTS = true;
 TRANSFORM = 0;
 
@@ -8,6 +8,7 @@ BOARD_CLIP_DEPTH = 0.4;
 BOARD_SIDE_TOL = 0.1;
 BOARD_END_TOL = 0.1;
 BOARD_THICK_TOL = 0.05;
+EPSILON = 0.001;
 
 module mirrcpy(axis) {
     children();
@@ -134,18 +135,18 @@ module shell() {
         union() mirrcpy([1,0,0]) {
             if(MODEL == "C") {
                 translate([8,0,0])
-                    slice_between_b(1);
+                    slice_between_b(1+EPSILON);
                 slice_contact_b(15.2);
                 end(8.5);
             } else if(MODEL == "B") {
                 for(m=[0,2,4,6,8]) translate([m,0,0])
-                    slice_between_b(0.8);
+                    slice_between_b(0.8+EPSILON);
                 for(m=[1,3,5,7]) translate([m,0,0])
                     slice_contact_b(1.2);
                 end(8.4);
             } else {
                 for(m=[0,2,4,6,8]) translate([m,0,0])
-                    slice_between_a(0.8);
+                    slice_between_a(0.8+EPSILON);
                 for(m=[1,3,5,7]) translate([m,0,0])
                     slice_contact_a(1.2);
                 end(8.4);
