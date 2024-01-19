@@ -1,0 +1,46 @@
+Encoded with Shift-JIS (JIS X 0208)
+Strings are null-terminated
+ASCII 0-9 displays the same as JIS 0-9
+Other ASCII characters used for text control
+Good coverage of latin characters in the JIS range
+
+Char entry grid printed by FUN_0e058770
+
+Placeholders are parsed by FUN_0e006a1c
+Each byte of text is parsed by FUN_0e007040
+Control characters parsed by FUN_0e006ee4
+Offset between characters determined by FUN_0e005b40
+Printing a character overall done by FUN_0e006e00
+Graphics bitmap is selected by FUN_0e006bd6
+Complex blitting in FUN_0e006cc0
+Simpler blitting in FUN_0e006d10
+
+Placeholders
+B: Dog's name (default Baku)
+M: Girl's name (default Momo)
+D/d, X/x, c, s: similar to sprintf (d/x support leading zeros, left justify?)
+
+Control characters
+space: advance full-char without printing anything
+!: place menu pointer here, advance half-char
+#: place menu pointer here, enable fast printing
+@: enable fast-printing (speed up text and disable sounds)
+.: prints halfwidth full-stop?
+>: advances half-char (for text positioning)
+C/c: clear text box
+K/k: pause and display arrow, can be used mid string
+N/n: newline (box scrolls but breaks after 3 lines?)
+^: disable fast-printing
+
+
+PATCHES FOR HALFWIDTH FONT
+[Character spacing]
+@005B4E: 322C->0009
+[Regular text blit]
+@006CD4: E700->E706
+@006D04: 00F4->00FA
+[Shadowed text blit]
+@006D56: E700->E706
+@006D92: E700->E706
+@006DCA: E700->E706
+@006DF2: 00F4->00FA
