@@ -53,7 +53,7 @@ VR501 ALPS RK09K1110-K20-C1-B103 10K potentiometer center detent (RK09K1110A0J n
 
 Recommended to replace R521 with 4.5K *OR* replace R522 with 1.56K to drop VCC from 5.2v to 5.0v.
 Suggested safe method is to lift one side of R522 and install a 68R resistor in series.
-R507,R508 may be bridged out or replaced with 100R to raise output level.
+R507,R508 may be replaced with 100R to raise output level.
 
 
 == Connectors ==
