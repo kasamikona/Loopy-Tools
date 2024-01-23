@@ -166,9 +166,8 @@ def cmd_regions(args):
 	with open(args[0], "rb") as f:
 		data = f.read()
 	
-	# Check if ROM is valid, swap if necessary
+	# Check if ROM is valid
 	startptr = struct.unpack(">I", data[0:4])[0]
-	swapped = False
 	if not startptr in valid_pointers:
 		print("Doesn't look like a valid ROM")
 		return
@@ -188,31 +187,22 @@ def cmd_regions(args):
 			if (strlen & 2):
 				if data[strloc+strlen] == 0 and data[strloc+strlen+1] == 9:
 					strlen += 2
+				elif data[strloc+strlen] == 255 and data[strloc+strlen+1] == 255:
+					strlen += 2
 			regions.append( (strloc, strlen) )
 	
-	# Sort and merge regions
-	#regions.sort(key=lambda r: r[0])
-	#for i in range(len(regions)-2, -1, -1): # [n-2 .. 0]
-	#	thisstart = regions[i][0]
-	#	thislen = regions[i][1]
-	#	nextstart = regions[i+1][0]
-	#	nextlen = regions[i+1][1]
-	#	if thisstart+thislen == nextstart:
-	#		regions[i] = (thisstart, nextstart+nextlen-thisstart)
-	#		regions.pop(i+1)
-	
-	# Resolve overlaps
+	# Resolve overlaps and merge by bitfield
 	DO_RESOLVE_OVERLAPS = True
 	if DO_RESOLVE_OVERLAPS:
-		region_data = [0]*len(data)
+		region_bitfield = [0]*((len(data)+31)//32)
 		for r in regions:
 			for i in range(r[0], r[0]+r[1]):
-				region_data[i] = 1
+				region_bitfield[i//32] |= 1<<(i&31)
 		regions = []
 		current_start = None
 		current_len = 0
 		for i in range(len(data)):
-			inside = region_data[i]
+			inside = (region_bitfield[i//32] & (1<<(i&31))) != 0
 			if current_start == None:
 				if inside:
 					current_start = i
