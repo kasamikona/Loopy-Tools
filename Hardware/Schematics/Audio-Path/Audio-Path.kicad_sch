@@ -1574,7 +1574,7 @@
   (symbol (lib_id "Device:R") (at 168.91 66.04 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 14cc2730-d071-46f9-9a8d-bf9a685251b8)
-    (property "Reference" "R509" (at 168.91 60.96 90)
+    (property "Reference" "R508" (at 168.91 60.96 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "5.6K" (at 168.91 63.5 90)
@@ -1591,7 +1591,7 @@
     (instances
       (project "Audio-Path"
         (path "/3962d1b5-09a1-4ff8-b83f-a989027d8058"
-          (reference "R509") (unit 1)
+          (reference "R508") (unit 1)
         )
       )
     )
@@ -2483,7 +2483,7 @@
   (symbol (lib_id "Device:R") (at 172.72 72.39 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 9154ae30-242c-4de1-ad16-fe43120bd2f7)
-    (property "Reference" "R508" (at 173.99 71.12 0)
+    (property "Reference" "R509" (at 173.99 71.12 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "100K" (at 173.99 73.66 0)
@@ -2500,7 +2500,7 @@
     (instances
       (project "Audio-Path"
         (path "/3962d1b5-09a1-4ff8-b83f-a989027d8058"
-          (reference "R508") (unit 1)
+          (reference "R509") (unit 1)
         )
       )
     )
