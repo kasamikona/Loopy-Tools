@@ -1,4 +1,4 @@
-import sys, struct, csv
+import sys, struct, csv, os
 
 rombase = 0x0E000000
 valid_pointers = range(rombase, rombase+0x400000, 4)
@@ -12,6 +12,11 @@ def should_exclude_string(data):
 		data.decode("shift-jis")
 	except UnicodeDecodeError:
 		return True
+	return False
+
+def should_warn_string(data):
+	#if len(data) < 4:
+	#	return True
 	return False
 
 def gather_strings(data, valid_range):
@@ -92,6 +97,19 @@ def string_unescape(string_esc):
 					string_raw += c
 	return string_raw
 
+def change_suffix(s, change_from, change_to):
+	s2 = s
+	if change_from:
+		index = s.rfind(change_from)
+		if index >= 0:
+			s2 = s[:index] + change_to + s[index+len(change_from):]
+	if s2 == s:
+		s2 = s+change_to
+	return s2
+
+def change_suffix_filename(s, change_from, change_to, extension):
+	return change_suffix(os.path.splitext(s)[0], change_from, change_to)+extension
+
 def cmd_unpack(args):
 	if len(args) != 1:
 		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin>")
@@ -133,7 +151,7 @@ def cmd_unpack(args):
 	print("String data uses {0:d} bytes".format(bytes_used))
 	
 	# Write unique strings
-	with open(args[0]+"_strings.csv", "w", encoding="utf-8", newline="") as f:
+	with open(change_suffix_filename(args[0], None, "_strings", ".csv"), "w", encoding="utf-8", newline="") as f:
 		header = ["origin", "origin_length", "text_jp", "text_en", "verified"]
 		w = csv.writer(f, delimiter=",", quotechar='"')
 		w.writerow(header)
@@ -142,7 +160,7 @@ def cmd_unpack(args):
 		print("Wrote {0:d} unique strings to {1}".format(len(string_list), f.name))
 	
 	# Write pointers
-	with open(args[0]+"_pointers.csv", "w", encoding="utf-8", newline="") as f:
+	with open(change_suffix_filename(args[0], None, "_pointers", ".csv"), "w", encoding="utf-8", newline="") as f:
 		header = ["ptrloc", "strloc"]
 		w = csv.writer(f, delimiter=",", quotechar='"')
 		w.writerow(header)
@@ -175,7 +193,7 @@ def cmd_regions(args):
 	with open(args[1], newline='', encoding="utf-8") as f:
 		cr = csv.reader(f, delimiter=",", quotechar='"')
 		for i, row in enumerate(cr):
-			if i == 0:
+			if i == 0 or row[0].startswith("#"):
 				continue
 			strloc = int(row[0], 16)-rombase
 			strlen = int(row[1])
@@ -217,7 +235,7 @@ def cmd_regions(args):
 			regions.append((current_start, current_len))
 
 	# Write memory regions
-	with open(args[0]+"_regions.csv", "w", encoding="utf-8", newline="") as f:
+	with open(change_suffix_filename(args[1], "_strings", "_regions", ".csv"), "w", encoding="utf-8", newline="") as f:
 		header = ["start", "length"]
 		w = csv.writer(f, delimiter=",", quotechar='"')
 		w.writerow(header)
@@ -239,6 +257,8 @@ def cmd_repack(args):
 	with open(args[0], "rb") as f:
 		data = f.read()
 	
+	newdata = bytearray(data)
+	
 	# Check if ROM is valid, swap if necessary
 	startptr = struct.unpack(">I", data[0:4])[0]
 	if not startptr in valid_pointers:
@@ -250,13 +270,17 @@ def cmd_repack(args):
 	with open(args[1], newline='', encoding="utf-8") as f:
 		cr = csv.reader(f, delimiter=",", quotechar='"')
 		for i, row in enumerate(cr):
-			if i == 0:
+			if i == 0 or row[0].startswith("#"):
 				continue
 			origin = int(row[0], 16)
 			text = row[3]
 			if len(text) == 0:
 				text = row[2]
 			text_data = string_unescape(text).encode("shift-jis")
+			
+			if should_warn_string(text_data):
+				print(f"Warning: data at 0x{origin:08X} might not be a string. Repacking anyway.")
+			
 			text_data += b"\x00"
 			need_len = len(text_data)
 			string_data_needed += need_len
@@ -279,7 +303,7 @@ def cmd_repack(args):
 	with open(args[2], newline='', encoding="utf-8") as f:
 		cr = csv.reader(f, delimiter=",", quotechar='"')
 		for i, row in enumerate(cr):
-			if i == 0:
+			if i == 0 or row[0].startswith("#"):
 				continue
 			start = int(row[0],16)
 			length = int(row[1])
@@ -309,6 +333,9 @@ def cmd_repack(args):
 				best_region = r
 				best_region_diff = diff
 				best_region_index = i
+			#best_region = r
+			#best_region_index = i
+			#break
 		
 		if best_region == None:
 			print("Can't fit strings with this fitting method! Shorten strings or add more regions")
@@ -317,7 +344,7 @@ def cmd_repack(args):
 		# Insert data where found
 		fit_start = best_region[0]
 		fit_end = fit_start + need_len
-		data[fit_start:fit_end] = text_data
+		newdata[fit_start:fit_end] = text_data
 		
 		# Update region size
 		new_start = fit_end
@@ -331,17 +358,17 @@ def cmd_repack(args):
 		
 		# Write padding
 		for i in range(fit_end, new_start):
-			data[i] = (i&1)*9
+			newdata[i] = 0xFF #(i&1)*9
 		
 		# Update pointers
 		for p in s[2]:
-			data[p:p+4] = struct.pack(">I", fit_start+rombase)
+			newdata[p:p+4] = struct.pack(">I", fit_start+rombase)
 		
 	print("All strings inserted successfully")
 	
 	# Write the new ROM
-	with open(args[0]+"_repack.bin", "wb") as f:
-		f.write(data)
+	with open(change_suffix_filename(args[1], "_strings", "_repack", ".bin"), "wb") as f:
+		f.write(bytes(newdata))
 		print("Wrote repacked ROM to {0}".format(f.name))
 
 def handle_command():
