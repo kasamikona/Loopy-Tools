@@ -4,11 +4,15 @@ This is a collection of tools, scripts and info that I have created/gathered in 
 development work on the Casio Loopy. There isn't a whole lot here yet. The collection will grow as
 time goes on, but some parts may split off into dedicated repos.  
 
+## Related repositories
+
+[Loopy-Schematics](https://github.com/kasamikona/Loopy-Schematics): Schematics for various parts and accessories.
+
 ## Repo Contents
 
 - CompilerTemplate: A preliminary C toolchain for compiling very simple Loopy code.
 - Documentation: Research findings and datasheets.
-- Hardware: Parts for custom designed hardware like flash carts, mods etc.
+- Hardware: Parts for custom designed hardware.
 - SerialDumper: A tool to dump cartridges using the Loopy console itself with a serial mod.
 - Tools: General tools and scripts for ROM analysis and manipulation etc.
 - Wanwan: Tools and scripts focused on researching and modifying the Wanwan Aijou Monogatari game.
