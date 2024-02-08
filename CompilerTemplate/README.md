@@ -1,5 +1,11 @@
 # Casio Loopy C Compiler Template
 
+### Please do not use my tools or materials here for creating NSFW or offensive content.
+**The demographic of the Loopy including the modern community is not a suitable place for this.**
+**I can't stop you from doing anything, but I will blacklist you and certainly won't provide support if you do so.** 
+
+---
+
 **NOTE: You can't do much with this yet.** We don't yet know how to make graphics and audio happen.
 With that said, this is *technically* a fully functional compiler setup.
 If you have a flash cart, you can get this code running on your Loopy.

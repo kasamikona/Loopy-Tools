@@ -1,5 +1,11 @@
 # Kasami's Loopy Tools Collection
 
+### Please do not use my tools or materials here for creating NSFW or offensive content.
+**The demographic of the Loopy including the modern community is not a suitable place for this.**
+**I can't stop you from doing anything, but I will blacklist you and certainly won't provide support if you do so.** 
+
+---
+
 This is a collection of tools, scripts and info that I have created/gathered in my research and
 development work on the Casio Loopy. There isn't a whole lot here yet. The collection will grow as
 time goes on, but some parts may split off into dedicated repos.  
