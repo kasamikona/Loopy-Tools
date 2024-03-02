@@ -11,6 +11,7 @@ __attribute__((interrupt_handler))
 __attribute__((section(".smallfunc")))
 void doNothing(void) { /*asm volatile ("nop");*/ }
 
+__attribute__((noreturn))
 __attribute__((interrupt_handler))
 __attribute__((section(".smallfunc")))
 void halt(void) { while(1); }
