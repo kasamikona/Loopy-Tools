@@ -1,24 +1,48 @@
-Call BiosPlayBGM(&soundState, unused (u32), trackIndex (u32), &trackList)
+Call BiosPlayBGM(&soundState, unused (u8), trackIndex (u16), &trackList)
 Track list is a list of pointers to track data.
+
 
 Track structure:
 - Header
 - Data segments...
 - Track change/end marker or loop marker
 
+
 Track header:
-- Timer rate (u16); set with prescaler F_CPU/8
-- Unknown (u16); written to 0x0C080000, echo parameter?
+- Timer rate (u16); 2,000,000 / timer rate = ticks per second.
+- Control value (u16); Primarily sets channel volume.
+
+All delays are in timer ticks.
+Generally, tempo BPM = 60 * (ticks per second / 24).
+
+
+Control value:
+- bits 0-5: internal use (bit5=1, others=0, set 0x0020)
+- bit 6  (0x0040): volume ch3 60%
+- bit 7  (0x0080): volume ch3 80%
+- bit 8  (0x0100): volume ch3 100%
+- bit 9  (0x0200): volume ch1/2 60%
+- bit 10 (0x0400): volume ch1/2 80%
+- bit 11 (0x0800): volume ch1/2 100%
+
+Channel numbers zero-based (ch3 is the 4th channel).
+Channel 0 is always full volume.
+For all channels full volume, use 0x0920.
+
 
 Data segment:
 - Delay (u8)
 - Length (u8) < 0xFE
-- MIDI data...
+- MIDI data (u8 x length)
+
+MIDI data is allowed to use "running status", i.e. [90 38 40] [90 3C 40] -> [90 38 40] [3C 40]
+
 
 Track change/end marker:
 - Delay (u8)
 - 0xFE
 - Next track index (u16); 0xFFFF=end
+
 
 Track loop marker:
 - Delay (u8)
@@ -30,7 +54,7 @@ SFX uses the format of one data segment as its entire data, no header/end. Usual
 
 Example boot logo track data:
 87 A2 Timer rate
-08 A0 Unknown parameter
+08 A0 Control value (ch1/2 100%, ch3 80%)
 
 00 Delay 0
 0F MidiData 15 bytes
