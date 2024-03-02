@@ -2,7 +2,7 @@
 # Based on Wonderful Toolchain package for SuperH
 
 # Normal use: "make clean && make"
-# Generate byteswapped ROM for bad flashers: "make clean && make swapped"
+
 # Memory sizes; should use K/M suffix or decimal integer
 # Cart rom, maximum 4MB addressable
 ROMSIZE = 4M
@@ -38,7 +38,6 @@ SRCDIR = ./src
 INCDIR = ./include
 OBJDIR = ./obj
 ROM    = ./rom.bin
-ROMSWP = ./rom.nib
 
 # Basic compile options
 OPTIMIZE = -Os
@@ -70,15 +69,11 @@ SIZEDEFS += -Wl,--defsym=STACKSIZE=$(STACKSIZE)
 LDFLAGS  = -nostartfiles -nolibc -Wl,--gc-sections -Wl,--no-warn-rwx-segment -Wl,--orphan-handling=error -Wl,--print-memory-usage
 LDFLAGS += $(SIZEDEFS) -Wl,-T $(LDSCRIPT) $(LIBS)
 
-.PHONY: clean rom swapped
+.PHONY: clean rom
 
 all: rom
 
 rom: $(ROM)
-swapped: $(ROMSWP)
-
-$(ROMSWP): $(ROM)
-	$(OBJ) --reverse-bytes=2 -I binary -O binary $(ROM) $(ROMSWP)
 
 %.elf:
 	$(CC) $(LDFLAGS) $^ -o $@
@@ -101,4 +96,4 @@ $(OBJDIR):
 
 clean:
 	$(RMDIR) $(OBJDIR)
-	$(RM) $(ROM) $(ROMSWP)
+	$(RM) $(ROM)
