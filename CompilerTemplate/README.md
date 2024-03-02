@@ -1,4 +1,4 @@
-# Casio Loopy C Compiler Template
+# Casio Loopy Compiler Template
 
 ### Please do not use my tools or materials here for creating NSFW or offensive content.
 **The demographic of the Loopy including the modern community is not a suitable place for this.**
@@ -6,18 +6,20 @@
 
 ---
 
-**NOTE: You can't do much with this yet.** We don't yet know how to make graphics and audio happen.
-With that said, this is *technically* a fully functional compiler setup.
-If you have a flash cart, you can get this code running on your Loopy.
-The code provided is designed for testing with the serial mod described in the SerialDumper section of this repo.  
+**NOTE: This code currently produces no graphics or audio.**  
+We are working on reverse-engineering and documenting the rest of the hardware beyond the CPU,
+and have successfully produced graphics and audio in small tests, but don't have a great interface for it yet.
+With that said, this is *technically* a fully functional compiler setup,
+and it is already being used to develop some small games.
 
-Additional disclaimer: This is by no means a robust setup. Things will probably break.
+The code provided was originally designed for testing with the serial mod described in the SerialDumper section of this repo,
+but since then the awesome [Floopy Drive](https://github.com/partlyhuman/loopycart) flash cart project
+has added direct serial connection through the cart.  
+
+Additional disclaimers: This is by no means a robust setup. Things will probably break.
 Feel free to let me know through issues, PRs etc.
-I've already tried to add C++ support and it didn't go well. Please wait for a better toolchain.  
-
-**I am waiting on a proper build toolchain that is currently being set up.**
-The code here will be turned into a HAL designed to work alongside that toolchain when available.
-There will be no further significant changes to the preliminary toolchain included/described here.  
+C++ support may be flaky. It *should* work with the current setup but it's entirely untested on my end.
+My priority is to get everything working *well* for C, and deal with C++ further down the road.
 
 ## Prerequisites
 
@@ -35,10 +37,7 @@ This will probably be replaced with a small self-contained C program soon.
 ## Building
 
 Once everything is set up, you can build a Loopy ROM by just running `make` in this directory.
-It will produce a `rom.bin` file which is ready for direct use on a flash cart.  
-
-If you have some old setup that requires byte-swapped ROMs (starting with 00 0e),
-run `make swapped` and you will get a `rom.nib` which is a suitable byte-swapped file.  
+It will produce a `rom.bin` file which is ready for direct use on a flash cart or emulator.  
 
 To ensure a clean build after modifications you should use `make clean && make`.  
 
@@ -57,12 +56,12 @@ Now go have fun poking around with the code... when there's something more inter
 ## What's in the files?
 
 A basic rundown of the files is as follows:  
-- Makefile: A somewhat ugly GNU make file to compile for the Loopy. Some build options are configurable here.
-- loopy.ld: Linker script used by GCC to place the code into cart ROM, console RAM, etc. It also creates the ROM header.
-- fixsum.py: A Python script used by the makefile to calculate and insert the (non-critical) ROM checksum into the header.
-- src/startup.s: Raw assembly code to initialize the system, set up the vector table, clear RAM and call main().
-- src/main.c: The main program. It sets up a serial connection, prints to it, and then echoes anything it receives.
-- src/vectors.c: The interrupt vector table which points interrupts to C functions. Unused vectors are set up to either do nothing or halt.
-- src/serial.c, include/serial.h: A basic serial interface layer with blocking writes and buffered reads, similar to Arduino style.
-- include/loopy.h: A header file containing Loopy-specific definitions such as F_CPU, also includes sh7021_peripherals.h.
-- include/sh7021_peripherals.h: A hopefully complete list of definitions for SH7021 on-chip registers for the various peripherals.
+- Makefile: A makefile to compile for the Loopy. Some build options like stack size are configurable.
+- loopy.ld: Linker script used by GCC to construct the ROM, including the header layout.
+- fixsum.py: A post-compilation Python script that calculates and injects the checksum into the ROM header.
+- src/startup.s, src/crt0.c: Initializes the system and C runtime, and calls main().
+- src/main.c: The main program. Sets up a serial connection, prints to it, and then echoes anything it receives.
+- src/vectors.c: Interrupt vector table and supporting functions. Unused vectors either do nothing or halt.
+- src/serial.c, include/serial.h: Basic serial interface layer with blocking writes and buffered reads, similar to Arduino.
+- include/loopy.h: Loopy-specific definitions, includes sh7021_peripherals.h.
+- include/sh7021_peripherals.h: Definitions for SH7021 on-chip peripheral registers.
