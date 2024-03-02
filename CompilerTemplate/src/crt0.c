@@ -8,7 +8,7 @@ extern uint32_t __ctors_link_end __asm("__ctors_link_end");
 
 extern uint32_t __data_link_start __asm("__data_link_start");
 extern uint32_t __data_link_end __asm("__data_link_end");
-extern uint32_t __data_load_start __asm("__data_link_start");
+extern uint32_t __data_load_start __asm("__data_load_start");
 
 typedef void(init_t)(void);
 
