@@ -25,7 +25,7 @@ OBJ = $(TOOLBIN)$(PREFIX)objcopy
 MV     = mv
 MKDIR  = mkdir -p
 RMDIR  = rm -rf
-FIXROM = /usr/bin/env python3 ./tools/fixsum.py # Change to "python" if necessary
+FIXROM = /usr/bin/env python3 ./tools/fixrom.py # Change to "python" if necessary
 
 # File/dir locations
 SRCDIR = ./src
