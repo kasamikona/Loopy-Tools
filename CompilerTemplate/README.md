@@ -2,7 +2,9 @@
 
 ### Please do not use my tools or materials here for creating NSFW or offensive content.
 **The demographic of the Loopy including the modern community is not a suitable place for this.**
-**I can't stop you from doing anything, but I will blacklist you and certainly won't provide support if you do so.** 
+**I can't stop you from doing anything, but I will blacklist you and certainly won't provide support if you do so.**
+This does not constitute a further licensing restriction, but a moral expectation and a polite request.
+You may still "use this software for any purpose" as far as the (zlib) license is concerned.  
 
 ---
 
