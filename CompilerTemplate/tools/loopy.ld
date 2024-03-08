@@ -1,5 +1,4 @@
-/* Import ROMSIZE, SRAMSIZE, STACKSIZE, ROMPADDING(bool) */
-/* ROMPADDING value is just used to build header properly */
+/* Symbols SRAMSIZE, STACKSIZE defined in makefile */
 
 OUTPUT_FORMAT("elf32-sh", "elf32-sh", "elf32-sh")
 OUTPUT_ARCH(sh)
@@ -8,7 +7,7 @@ MEMORY {
     /* Console side */
     RAM (rwx) : ORIGIN = 0x09000000, LENGTH = 512K - STACKSIZE
     /* Cartridge side */
-    ROM (rwx) : ORIGIN = 0x0E000000, LENGTH = ROMSIZE
+    ROM (rwx) : ORIGIN = 0x0E000000, LENGTH = 4M
     SRAM (rwx) : ORIGIN = 0x02000000, LENGTH = SRAMSIZE
 }
 
@@ -58,8 +57,6 @@ SECTIONS {
     KEEP(*(.ctors))
     KEEP(*(.ctors.*))
   } >ROM
-
-    . = ALIGN(4096);
 
   __ctors_link_start = ADDR(.ctors);
   __ctors_link_end = ADDR(.ctors) + SIZEOF(.ctors);
