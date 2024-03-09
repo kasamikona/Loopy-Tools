@@ -84,12 +84,22 @@ SECTIONS {
 
   __bss_link_start = ADDR(.bss);
   __bss_link_end = ADDR(.bss) + SIZEOF(.bss);
+  
+  /* Go back and pad ROM now that we know where .data ends. */
+  . = LOADADDR(.data) + SIZEOF(.data);
+  .rompad : {
+    /* Always at least one byte of padding, LD won't output empty section */
+    BYTE(0xFF);
+    . = ALIGN(2);
+    _even_padded = .;
+    . = ALIGN(4096);
+  } >ROM =0xFF
 
   INCLUDE "tools/debug.ld"
 }
 
 __clheader_romfirst = ADDR(.vectors);
-__clheader_romlast = LOADADDR(.data) + SIZEOF(.data) - 2;
+__clheader_romlast = _even_padded - 2;
 __clheader_sramfirst = ORIGIN(SRAM);
 __clheader_sramlast = ORIGIN(SRAM) + LENGTH(SRAM) - 1;
 
