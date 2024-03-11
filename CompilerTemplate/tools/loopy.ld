@@ -39,6 +39,13 @@ SECTIONS {
     *(.text)
     *(.text.*)
 
+    /*
+    This and the following `. = ALIGN(4)` expressions are intended to
+    encourage LMA alignment. Without this, the load addresses of AT>
+    sections such as .data can be misaligned, causes issues in crt0.c
+    if `.data` is copied using 32-bit reads/writes.
+    */
+    . = ALIGN(4);
   } >ROM =0xFF
 
   __text_link_start = ADDR(.text);
@@ -47,6 +54,8 @@ SECTIONS {
   .rodata ALIGN(4) : SUBALIGN(4) {
     *(.rodata)
     *(.rodata.*)
+
+    . = ALIGN(4);
   } >ROM
 
   __rodata_link_start = ADDR(.rodata);
@@ -56,6 +65,8 @@ SECTIONS {
   {
     KEEP(*(.ctors))
     KEEP(*(.ctors.*))
+
+    . = ALIGN(4);
   } >ROM
 
   __ctors_link_start = ADDR(.ctors);
@@ -70,6 +81,8 @@ SECTIONS {
 
     KEEP(*(.ramtext))
     KEEP(*(.ramfunc))
+
+    . = ALIGN(4);
   } >RAM AT> ROM
 
   __data_link_start = ADDR(.data);
@@ -80,6 +93,8 @@ SECTIONS {
     *(.bss)
     *(.bss.*)
     *(COMMON)
+
+    . = ALIGN(4);
   } >RAM
 
   __bss_link_start = ADDR(.bss);
