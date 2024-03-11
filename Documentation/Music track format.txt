@@ -1,19 +1,27 @@
-Call BiosPlayBGM(&soundState, unused (u8), trackIndex (u16), &trackList)
-Track list is a list of pointers to track data.
+To play music, after sound has been set up, call
+BiosPlayBgm(&soundState, unk (u8), trackIndex (u16), &trackList)
+
+soundState is an unknown 256(?)-byte struct, can be any zero-initialized memory.
+unk is unused by the playback process but stored in soundState.
+trackIndex is an offset into trackList where to start playing.
+trackList is a list of pointers to Track structures, and is retained for TrackChange events.
+
+You can reuse a trackList at 0x7F88 in the BIOS (trackIndex 0) to stop music at any time.
 
 
 Track structure:
 - Header
-- Data segments...
-- Track change/end marker or loop marker
+- MidiData segments...
+- TrackChange or TrackLoop segment
 
 
 Track header:
 - Timer rate (u16); 2,000,000 / timer rate = ticks per second.
 - Control value (u16); Primarily sets channel volume.
 
-All delays are in timer ticks.
-Generally, tempo BPM = 60 * (ticks per second / 24).
+All delays are in timer ticks. 24 ticks per quarter note.
+BPM = 60 * (ticks per second / 24).
+Therefore timer rate = 5,000,000 / BPM
 
 
 Control value:
@@ -30,30 +38,53 @@ Channel 0 is always full volume.
 For all channels full volume, use 0x0920.
 
 
-Data segment:
+MidiData segment:
 - Delay (u8)
 - Length (u8) < 0xFE
 - MIDI data (u8 x length)
 
-MIDI data is allowed to use "running status", i.e. [90 38 40] [90 3C 40] -> [90 38 40] [3C 40]
+MIDI data may contain multiple messages. Does not need to start or end on a complete message.
+May use "running status", i.e. chord [90 38 40][90 3C 40][90 3F 40] -> [90 38 40][3C 40][3F 40]
 
 
-Track change/end marker:
+TrackChange segment:
 - Delay (u8)
 - 0xFE
-- Next track index (u16); 0xFFFF=end
+- Next track index in current trackList (u16); 0xFFFF=stop
 
 
-Track loop marker:
+TrackLoop segment:
 - Delay (u8)
 - 0xFF
 
 
-SFX uses the format of one data segment as its entire data, no header/end. Usually delay is 0.
+SFX uses the format of one MidiData segment as its entire data, no header/end. Usually delay is 0.
 
 
-Example boot logo track data:
-87 A2 Timer rate
+MIDI specs:
+- 4 channels (max) set by BiosSoundChannels mode:
+  - Mode 0: 4 channels 6/4/2 note polyphony
+  - Mode 1: 3 channels 6/4/2 note polyphony + rhythm (external clock)
+  - Mode 2: 3 channels 6/4/2 note polyphony
+  - Mode 3: 1 channel 12 note polyphony
+- 110 instruments (programs)
+  - Polyphony is halved for some complex sounds
+- No note velocity, tracks can roughly set channel volumes instead
+- Supported events (hex status, decimal parameters, channel range 0-3):
+  - NoteOn: 0x90+ch, note 36-96, velocity >0
+  - NoteOff*: 0x90+ch, note 36-96, velocity 0; alternate NoteOn form
+  - NoteOff: 0x80+ch, note 36-96, velocity ignored
+  - ProgramChange: 0xC0+ch, program 0-109
+  - PitchBend: 0xE0+ch, value; 8 significant bits, range +/- 2 semitones
+  - ControlChange: 0xB0+ch, controller, data; sustain pedal only (controller 0x40)
+- Internal rhythms can be accessed using MIDI realtime messages
+  - Select with ProgramChange on 4th channel (ch3)
+  - MIDI messages StartSong (0xFA), StopSong (0xFC), TimingClock (0xF8)
+  - Timing clock should be 24 per quarter note (standard)
+
+
+Example boot logo track data (bytes given in hex):
+87 A2 Timer rate 144 BPM
 08 A0 Control value (ch1/2 100%, ch3 80%)
 
 00 Delay 0
@@ -145,4 +176,5 @@ C3 50 ProgramChange Channel=3 Instrument=50h
 93 3A 00 NoteOn Channel=3 Note=3Ah Velocity=OFF
 
 00 Delay 0
-FE FF FF TrackChange Index=STOP
+FE TrackChange
+FF FF Index=stop
