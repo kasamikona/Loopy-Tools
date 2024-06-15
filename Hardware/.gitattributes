@@ -1,0 +1,8 @@
+# Don't munge kicad files as text
+*.kicad_pro binary
+*.kicad_pcb binary
+*.kicad_sch binary
+*.kicad_sym binary
+*.kicad_mod binary
+fp-lib-table binary
+sym-lib-table binary
