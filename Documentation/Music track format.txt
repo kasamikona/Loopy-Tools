@@ -1,12 +1,40 @@
 To play music, after sound has been set up, call
-BiosPlayBgm(&soundState, unk (u8), trackIndex (u16), &trackList)
+BiosPlayBgm(&soundState, unk (u8), trackIndex (u16), &trackList);
 
 soundState is an unknown 256(?)-byte struct, can be any zero-initialized memory.
 unk is unused by the playback process but stored in soundState.
 trackIndex is an offset into trackList where to start playing.
-trackList is a list of pointers to Track structures, and is retained for TrackChange events.
+trackList is an array of pointers to track structures, and is used by track changes.
 
-You can reuse a trackList at 0x7F88 in the BIOS (trackIndex 0) to stop music at any time.
+To stop music, play a track that changes instrument on all channels and then stops.
+The BIOS contains a track list at 0x7F88 with a suitable track for this at index 0.
+
+
+Sound hardware MIDI specs:
+  4 channels (max) set by BiosSoundChannels mode:
+  - Mode 0: 4 channels 6/4/2/4 note polyphony
+  - Mode 1: 3 channels 6/4/2 note polyphony + rhythm (external clock)
+  - Mode 2: 3 channels 6/4/2 note polyphony
+  - Mode 3: 1 channel 12 note polyphony
+
+  110 instruments (programs)
+  - Polyphony is halved for some complex sounds
+
+  No note velocity, tracks can roughly set channel volumes instead
+
+  Supported events (hex status, decimal parameters, channel encoded as 0-3):
+  - NoteOn: 0x90+ch, note 36-96, velocity>0
+  - NoteOff: 0x80+ch, note 36-96, velocity ignored
+  - NoteOff alternate: 0x90+ch, note 36-96, velocity=0
+  - ProgramChange: 0xC0+ch, program 0-109; other values reset channel without changing
+  - PitchBend: 0xE0+ch, bend LSB, bend MSB; 8 significant bits used, fixed range +/- 2 semitones
+  - ControlChange: 0xB0+ch, controller, data; sustain pedal only (controller 0x40)
+
+  Internal rhythms can be accessed using MIDI realtime messages
+  - Channels must be set to mode 1
+  - Select rhythm with ProgramChange on 4th channel
+  - Control with MIDI messages StartSong (0xFA), StopSong (0xFC), TimingClock (0xF8)
+  - Timing clock should be 24 pulses per quarter note
 
 
 Track structure:
@@ -25,17 +53,24 @@ Therefore timer rate = 5,000,000 / BPM
 
 
 Control value:
-- bits 0-5: internal use (bit5=1, others=0, set 0x0020)
-- bit 6  (0x0040): volume ch3 60%
-- bit 7  (0x0080): volume ch3 80%
-- bit 8  (0x0100): volume ch3 100%
-- bit 9  (0x0200): volume ch1/2 60%
-- bit 10 (0x0400): volume ch1/2 80%
-- bit 11 (0x0800): volume ch1/2 100%
+- bits 0-4: internal use (must be set to 0)
+- bit 5  (0x0020): internal use (must be set to 1)
+- bit 6  (0x0040): volume ch4 low (~59%)
+- bit 7  (0x0080): volume ch4 mid (~78%)
+- bit 8  (0x0100): volume ch4 high 100%
+- bit 9  (0x0200): volume ch2/3 low (~59%)
+- bit 10 (0x0400): volume ch2/3 mid (~78%)
+- bit 11 (0x0800): volume ch2/3 high 100%
+- bits 12-15: don't care
 
-Channel numbers zero-based (ch3 is the 4th channel).
-Channel 0 is always full volume.
+Channel numbers one-based (channels 1,2,3,4 available).
+Channel 1 is always full volume.
 For all channels full volume, use 0x0920.
+
+High volume is defined as 255/255 scale.
+Mid volume is defined as 200/255 scale.
+Low volume is defined as 150/255 scale.
+These are set in hardware and cannot be changed. Lower volumes are not available.
 
 
 MidiData segment:
@@ -43,14 +78,16 @@ MidiData segment:
 - Length (u8) < 0xFE
 - MIDI data (u8 x length)
 
-MIDI data may contain multiple messages. Does not need to start or end on a complete message.
-May use "running status", i.e. chord [90 38 40][90 3C 40][90 3F 40] -> [90 38 40][3C 40][3F 40]
+MIDI data may contain multiple events, but each event must be fully contained within a segment
+otherwise SFX or other shared uses of sound hardware may corrupt the status.
+May use "running status", e.g. [90 38 40][90 3C 40][90 3F 40] -> [90 38 40][3C 40][3F 40].
+Running status cannot be used across multiple segments for the same reason as above.
 
 
 TrackChange segment:
 - Delay (u8)
 - 0xFE
-- Next track index in current trackList (u16); 0xFFFF=stop
+- Next index (u16); index in current trackList, or 0xFFFF=STOP
 
 
 TrackLoop segment:
@@ -61,120 +98,98 @@ TrackLoop segment:
 SFX uses the format of one MidiData segment as its entire data, no header/end. Usually delay is 0.
 
 
-MIDI specs:
-- 4 channels (max) set by BiosSoundChannels mode:
-  - Mode 0: 4 channels 6/4/2 note polyphony
-  - Mode 1: 3 channels 6/4/2 note polyphony + rhythm (external clock)
-  - Mode 2: 3 channels 6/4/2 note polyphony
-  - Mode 3: 1 channel 12 note polyphony
-- 110 instruments (programs)
-  - Polyphony is halved for some complex sounds
-- No note velocity, tracks can roughly set channel volumes instead
-- Supported events (hex status, decimal parameters, channel range 0-3):
-  - NoteOn: 0x90+ch, note 36-96, velocity >0
-  - NoteOff*: 0x90+ch, note 36-96, velocity 0; alternate NoteOn form
-  - NoteOff: 0x80+ch, note 36-96, velocity ignored
-  - ProgramChange: 0xC0+ch, program 0-109
-  - PitchBend: 0xE0+ch, value; 8 significant bits, range +/- 2 semitones
-  - ControlChange: 0xB0+ch, controller, data; sustain pedal only (controller 0x40)
-- Internal rhythms can be accessed using MIDI realtime messages
-  - Select with ProgramChange on 4th channel (ch3)
-  - MIDI messages StartSong (0xFA), StopSong (0xFC), TimingClock (0xF8)
-  - Timing clock should be 24 per quarter note (standard)
-
-
 Example boot logo track data (bytes given in hex):
 87 A2 Timer rate 144 BPM
-08 A0 Control value (ch1/2 100%, ch3 80%)
+08 A0 Control value (ch2/3 high volume, ch4 mid volume)
 
 00 Delay 0
 0F MidiData 15 bytes
-C0 60 ProgramChange Channel=0 Instrument=60h
-90 38 40 NoteOn Channel=0 Note=38h Velocity=40h
-C1 5C ProgramChange Channel=1 Instrument=5Ch
-91 38 40 NoteOn Channel=1 Note=38h Velocity=40h
-C3 50 ProgramChange Channel=3 Instrument=50h
-93 38 40 NoteOn Channel=3 Note=38h Velocity=40h
+C0 60 ProgramChange Channel=1 Instrument=60h
+90 38 40 NoteOn Channel=1 Note=38h Velocity=40h
+C1 5C ProgramChange Channel=2 Instrument=5Ch
+91 38 40 NoteOn Channel=2 Note=38h Velocity=40h
+C3 50 ProgramChange Channel=4 Instrument=50h
+93 38 40 NoteOn Channel=4 Note=38h Velocity=40h
 
 04 Delay 4
 03 MidiData 3 bytes
-90 38 00 NoteOn Channel=0 Note=38h Velocity=OFF
+90 38 00 NoteOn Channel=1 Note=38h Velocity=OFF
 
 07 Delay 7
 03 MidiData 3 bytes
-91 38 00 NoteOn Channel=1 Note=38h Velocity=OFF
+91 38 00 NoteOn Channel=2 Note=38h Velocity=OFF
 
 01 Delay 1
 06 MidiData 6 bytes
-90 3C 40 NoteOn Channel=0 Note=3Ch Velocity=40h
-91 3C 40 NoteOn Channel=1 Note=3Ch Velocity=40h
+90 3C 40 NoteOn Channel=1 Note=3Ch Velocity=40h
+91 3C 40 NoteOn Channel=2 Note=3Ch Velocity=40h
 
 04 Delay 4
 03 MidiData 3 bytes
-90 3C 00 NoteOn Channel=0 Note=3Ch Velocity=OFF
+90 3C 00 NoteOn Channel=1 Note=3Ch Velocity=OFF
 
 05 Delay 5
 03 MidiData 3 bytes
-91 3C 00 NoteOn Channel=1 Note=3Ch Velocity=OFF
+91 3C 00 NoteOn Channel=2 Note=3Ch Velocity=OFF
 
 03 Delay 3
 06 MidiData 6 bytes
-90 3F 40 NoteOn Channel=0 Note=3Fh Velocity=40h
-91 3F 40 NoteOn Channel=1 Note=3Fh Velocity=40h
+90 3F 40 NoteOn Channel=1 Note=3Fh Velocity=40h
+91 3F 40 NoteOn Channel=2 Note=3Fh Velocity=40h
 
 04 Delay 4
 03 MidiData 3 bytes
-90 3F 00 NoteOn Channel=0 Note=3Fh Velocity=OFF
+90 3F 00 NoteOn Channel=1 Note=3Fh Velocity=OFF
 
 02 Delay 2
 03 MidiData 3 bytes
-91 3F 00 NoteOn Channel=1 Note=3Fh Velocity=OFF
+91 3F 00 NoteOn Channel=2 Note=3Fh Velocity=OFF
 
 06 Delay 6
 06 MidiData 6 bytes
-90 46 40 NoteOn Channel=0 Note=46h Velocity=40h
-91 46 40 NoteOn Channel=1 Note=46h Velocity=40h
+90 46 40 NoteOn Channel=1 Note=46h Velocity=40h
+91 46 40 NoteOn Channel=2 Note=46h Velocity=40h
 
 04 Delay 4
 03 MidiData 3 bytes
-90 46 00 NoteOn Channel=0 Note=46h Velocity=OFF
+90 46 00 NoteOn Channel=1 Note=46h Velocity=OFF
 
 04 Delay 4
 03 MidiData 3 bytes
-91 46 00 NoteOn Channel=1 Note=46h Velocity=OFF
+91 46 00 NoteOn Channel=2 Note=46h Velocity=OFF
 
 04 Delay 4
 0C MidiData 12 bytes
-90 4B 40 NoteOn Channel=0 Note=4Bh Velocity=40h
-91 4B 40 NoteOn Channel=1 Note=4Bh Velocity=40h
-93 38 00 NoteOn Channel=3 Note=38h Velocity=OFF
-93 3A 40 NoteOn Channel=3 Note=3Ah Velocity=40h
+90 4B 40 NoteOn Channel=1 Note=4Bh Velocity=40h
+91 4B 40 NoteOn Channel=2 Note=4Bh Velocity=40h
+93 38 00 NoteOn Channel=4 Note=38h Velocity=OFF
+93 3A 40 NoteOn Channel=4 Note=3Ah Velocity=40h
 
 04 Delay 4
 03 MidiData 3 bytes
-90 4B 00 NoteOn Channel=0 Note=4Bh Velocity=OFF
+90 4B 00 NoteOn Channel=1 Note=4Bh Velocity=OFF
 
 03 Delay 3
 03 MidiData 3 bytes
-91 4B 00 NoteOn Channel=1 Note=4Bh Velocity=OFF
+91 4B 00 NoteOn Channel=2 Note=4Bh Velocity=OFF
 
 05 Delay 5
 06 MidiData 6 bytes
-90 4F 40 NoteOn Channel=0 Note=4Fh Velocity=40h
-91 4F 40 NoteOn Channel=1 Note=4Fh Velocity=40h
+90 4F 40 NoteOn Channel=1 Note=4Fh Velocity=40h
+91 4F 40 NoteOn Channel=2 Note=4Fh Velocity=40h
 
 04 Delay 4
 03 MidiData 3 bytes
-90 4F 00 NoteOn Channel=0 Note=4Fh Velocity=OFF
+90 4F 00 NoteOn Channel=1 Note=4Fh Velocity=OFF
 
 04 Delay 4
 03 MidiData 3 bytes
-91 4F 00 NoteOn Channel=1 Note=4Fh Velocity=OFF
+91 4F 00 NoteOn Channel=2 Note=4Fh Velocity=OFF
 
 8D Delay 141
 03 MidiData 3 bytes
-93 3A 00 NoteOn Channel=3 Note=3Ah Velocity=OFF
+93 3A 00 NoteOn Channel=4 Note=3Ah Velocity=OFF
 
 00 Delay 0
 FE TrackChange
-FF FF Index=stop
+FF FF Index=STOP
