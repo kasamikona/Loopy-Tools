@@ -22,8 +22,8 @@ D/d, X/x, c, s: similar to sprintf (d/x support leading zeros, left justify?)
 
 Control characters
 space: advance full-char without printing anything
-!: place menu pointer here, advance half-char
-#: place menu pointer here, enable fast printing
+!: place menu pointer here, advance half-char, enable fast printing?
+#: place menu pointer here, enable fast printing?
 @: enable fast-printing (speed up text and disable sounds)
 .: prints halfwidth full-stop?
 >: advances half-char (for text positioning)
@@ -31,6 +31,31 @@ C/c: clear text box
 K/k: pause and display arrow, can be used mid string
 N/n: newline (box scrolls but breaks after 3 lines?)
 ^: disable fast-printing
+
+
+Control character escape codes for translation
+space: not escaped
+.: not escaped
+!: {opt} {option}
+#: {aopt} {altoption}
+>: {hsp} {halfspace}
+@: {fast}
+Cc: {clr} {clear}
+Kk: {np} {newpage}
+Nn: {nl} {newline}
+^: {slow} {nofast}
+
+Remapping to lower ASCII
+space: not remapped
+.: not remapped
+{slow} -> \x18
+{opt}  -> \x19
+{aopt} -> \x1A
+{fast} -> \x1B
+{clr}  -> \x1C
+{np}   -> \x1D
+{nl}   -> \x1E
+{hsp}  -> \x1F
 
 
 PATCHES FOR HALFWIDTH FONT

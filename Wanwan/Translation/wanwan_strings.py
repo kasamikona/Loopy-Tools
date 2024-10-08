@@ -1,7 +1,8 @@
 import sys, struct, csv, os
 
-rombase = 0x0E000000
-valid_pointers = range(rombase, rombase+0x400000, 4)
+ROM_BASE = 0x0E000000
+VALID_POINTERS = range(ROM_BASE, ROM_BASE+0x400000, 4)
+REPACK_FOR_HALFWIDTH = False
 
 def should_exclude_string(data):
 	for ch in data:
@@ -14,18 +15,13 @@ def should_exclude_string(data):
 		return True
 	return False
 
-def should_warn_string(data):
-	#if len(data) < 4:
-	#	return True
-	return False
-
 def gather_strings(data, valid_range):
 	parts = []
 	for addr in range(0, len(data), 4):
 		ptr = struct.unpack(">I", data[addr:addr+4])[0]
 		if ptr in valid_range:
 			strdata = b""
-			for ptr2 in range(ptr - rombase, len(data)):
+			for ptr2 in range(ptr - ROM_BASE, len(data)):
 				newchar = data[ptr2:ptr2+1]
 				if newchar == b"\0":
 					break
@@ -36,65 +32,71 @@ def gather_strings(data, valid_range):
 	return parts
 
 def string_escape(string_raw):
-	# Working with unicode so fullwidth character block is at 0xFF01 etc.
+	if not string_raw:
+		return "{empty}"
 	
 	string_esc = ""
+	
+	is_ascii = True
+	has_noncontrol_ascii = False
 	for c in string_raw:
-		# Escape ASCII
-		if ord(c) < 0x20:
-			string_esc += "\\x{0:02x}".format(ord(c))
-		elif c == "x":
-			string_esc += "\\xx" # special case for x
-		elif ord(c) <= 0x7E:
-			string_esc += "\\"+c
-		# Convert fullwidth to ASCII
-		elif ord(c) == 0x3000: # Ideographic space
-			string_esc += " "
-		elif ord(c) >= 0xFF01 and ord(c) <= 0xFF5E: # Regular fullwidth block
-			string_esc += chr(ord(c)-0xFEE0)
-		else:
-			string_esc += c
+		if ord(c) > 0x7E:
+			is_ascii = False
+			break
+		elif c not in "!#>@CcKkNn^%BM":
+			has_noncontrol_ascii = True
+	
+	is_ascii = is_ascii & has_noncontrol_ascii
+	
+	if is_ascii:
+		#print("Warning: plain ASCII string "+str(string_raw.encode("sjis")))
+		for c in string_raw:
+			if ord(c) < 0x20:
+				string_esc += f"\\x{ord(c):02x}"
+				print("Warning: escaped ASCII control code in string "+str(string_raw.encode("sjis")))
+			else:
+				string_esc += c
+	else:
+		for c in string_raw:
+			if ord(c) < 0x20:
+				string_esc += f"\\x{ord(c):02x}"
+				print("Warning: escaped ASCII control code in string "+str(string_raw.encode("sjis")))
+			elif c == "!":
+				string_esc += "{opt}"
+			elif c == "#":
+				string_esc += "{aopt}"
+			elif c == ">":
+				string_esc += "{hsp}"
+			elif c == "@":
+				string_esc += "{fast}"
+			elif c == "C" or c == "c":
+				string_esc += "{clr}"
+			elif c == "K" or c == "k":
+				string_esc += "{np}"
+			elif c == "N" or c == "n":
+				string_esc += "{nl}"
+			elif c == "^":
+				string_esc += "{slow}"
+			else:
+				string_esc += c
 	
 	# Test round-trip
-	string_roundtrip = string_unescape(string_esc)
-	if string_roundtrip != string_raw:
-		raise Exception("Round-trip error for string {0} -> {1} -> {2}".format(string_raw, string_esc, string_roundtrip))
+	string_roundtrip = string_unescape(string_esc, False)
+	if string_roundtrip.lower() != string_raw.lower() or (is_ascii and string_roundtrip != string_raw):
+		raise Exception(f"Round-trip error for string {string_raw} -> {string_esc} -> {string_roundtrip}")
 	
 	return string_esc
 
-def string_unescape(string_esc):
-	string_raw = ""
-	in_escape = 0
-	escape_ord = 0
-	for c in string_esc:
-		if in_escape == 1: # \?
-			if c == "x":
-				in_escape = 2
-			else:
-				string_raw += c
-				in_escape = 0
-		elif in_escape == 2: # \x?
-			if c == "x":
-				string_raw += c
-				in_escape = 0
-			else:
-				escape_ord = int(c, 16)*16
-				in_escape = 3
-		elif in_escape == 3: # \xN?
-			escape_ord += int(c, 16)
-			string_raw += chr(escape_ord)
-			in_escape = 0
-		else: # Not in escape
-			if c == "\\":
-				in_escape = 1
-			else:
-				# Convert unescaped ASCII to fullwidth
-				if c == " ":
-					string_raw += chr(0x3000)
-				elif ord(c) >= 0x20 and ord(c) <= 0x7E:
-					string_raw += chr(ord(c)+0xFEE0)
-				else:
-					string_raw += c
+def string_unescape(string_esc, alternate_mapping):
+	shorten = {"option":"opt","altoption":"aopt","halfspace":"hsp","clear":"clr","newpage":"np","newline":"nl","nofast":"slow"}
+	mapping = {"opt":"!","aopt":"#","hsp":">","fast":"@","clr":"c","np":"k","nl":"n","slow":"^"}
+	if alternate_mapping:
+		mapping = {"opt":"\x19","aopt":"\x1A","hsp":"\x1F","fast":"\x1B","clr":"\x1C","np":"\x1D","nl":"\x1E","slow":"\x18"}
+	string_raw = string_esc.replace("{empty}","")
+	for k,v in mapping.items():
+		string_raw = string_raw.replace("{"+k+"}",v)
+	for k,v in shorten.items():
+		string_raw = string_raw.replace("{"+k+"}",mapping[v])
 	return string_raw
 
 def change_suffix(s, change_from, change_to):
@@ -110,7 +112,16 @@ def change_suffix(s, change_from, change_to):
 def change_suffix_filename(s, change_from, change_to, extension):
 	return change_suffix(os.path.splitext(s)[0], change_from, change_to)+extension
 
-def cmd_unpack(args):
+def csv_quote(s):
+	qs = '"'
+	for ch in s:
+		qs += ch
+		if ch == '"':
+			qs += ch
+	qs += '"'
+	return qs
+
+def cmd_extract(args):
 	if len(args) != 1:
 		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin>")
 		return
@@ -120,53 +131,53 @@ def cmd_unpack(args):
 	
 	# Check if ROM is valid
 	startptr = struct.unpack(">I", data[0:4])[0]
-	if not startptr in valid_pointers:
+	if not startptr in VALID_POINTERS:
 		print("Doesn't look like a valid ROM")
 		return
 	
 	# Gather all valid string pointers
 	# (ptrloc, strloc, strdata)
-	stringpointers = gather_strings(data, valid_pointers)
-	print("Found {0:d} string pointers".format(len(stringpointers)))
+	stringpointers = gather_strings(data, VALID_POINTERS)
+	print(f"Found {len(stringpointers):d} string pointers")
 	
 	origin_set = set()
-	string_list = [] # (strloc, strlen, strdata)
-	pointer_list = [] # (ptrloc, strloc)
+	string_list = [] # (strloc, strlen, strdata, pointers)
 	region_list = [] 
+	string_indices = {} # strloc -> list index
 	
-	# Separate unique strings and their pointers
+	# Separate strings and their pointers
 	bytes_used = 0
 	for sp in stringpointers:
 		ptrloc = sp[0]
 		strloc = sp[1]
 		strdata = sp[2]
 		strlen = len(strdata) + 1 # +1 for null terminator
-		if not strloc in origin_set:
-			string_list.append( (strloc, strlen, strdata) )
-			origin_set.add(strloc)
-			region_list.append( (strloc-rombase, strlen) )
+		if not strloc in string_indices:
+			string_indices[strloc] = len(string_list)
+			string_list.append( (strloc, strlen, strdata, []) )
+			region_list.append( (strloc-ROM_BASE, strlen) )
 			bytes_used += strlen
-		pointer_list.append( (ptrloc, strloc) )
+		string_list[string_indices[strloc]][3].append(ptrloc+ROM_BASE)
 	
-	print("String data uses {0:d} bytes".format(bytes_used))
+	string_list = sorted(string_list, key=lambda s: s[0])
 	
-	# Write unique strings
-	with open(change_suffix_filename(args[0], None, "_strings", ".csv"), "w", encoding="utf-8", newline="") as f:
-		header = ["origin", "origin_length", "text_jp", "text_en", "verified"]
-		w = csv.writer(f, delimiter=",", quotechar='"')
-		w.writerow(header)
+	print(f"String data uses {bytes_used:d} bytes")
+	
+	# Write strings
+	with open(change_suffix_filename(args[0], None, "_strings", ".csv"), "w", encoding="utf-8") as f:
+		header = ["origin", "origin_length", "text_jp", "text_en", "pointers", "game_order"]
+		f.write(",".join(header)+"\n")
 		for e in string_list:
-			w.writerow( ["0x{0:08x}".format(e[0]), e[1], string_escape(e[2].decode("shift-jis")), "", ""] )
-		print("Wrote {0:d} unique strings to {1}".format(len(string_list), f.name))
-	
-	# Write pointers
-	with open(change_suffix_filename(args[0], None, "_pointers", ".csv"), "w", encoding="utf-8", newline="") as f:
-		header = ["ptrloc", "strloc"]
-		w = csv.writer(f, delimiter=",", quotechar='"')
-		w.writerow(header)
-		for e in pointer_list:
-			w.writerow( ["0x{0:08x}".format(e[0]), "0x{0:08x}".format(e[1])] )
-		print("Wrote {0:d} pointers to {1}".format(len(pointer_list), f.name))
+			row = [""] * len(header)
+			row[0] = f"0x{e[0]:08X}" # origin (hex)
+			row[1] = f"{e[1]:d}" # origin_length
+			row[2] = csv_quote(string_escape(e[2].decode("shift-jis"))) # text_jp
+			row[3] = '""' # text_en
+			row[4] = ";".join([f"0x{p:08X}" for p in e[3]]) # pointers (semicolon separated)
+			# 3:text_en and 5:game_order to be filled by user
+			f.write(",".join(row)+"\n")
+			
+		print(f"Extracted {len(string_list):d} strings to {f.name}")
 
 def cmd_regions(args):
 	if len(args) < 2:
@@ -186,7 +197,7 @@ def cmd_regions(args):
 	
 	# Check if ROM is valid
 	startptr = struct.unpack(">I", data[0:4])[0]
-	if not startptr in valid_pointers:
+	if not startptr in VALID_POINTERS:
 		print("Doesn't look like a valid ROM")
 		return
 	
@@ -195,7 +206,7 @@ def cmd_regions(args):
 		for i, row in enumerate(cr):
 			if i == 0 or row[0].startswith("#"):
 				continue
-			strloc = int(row[0], 16)-rombase
+			strloc = int(row[0], 16)-ROM_BASE
 			strlen = int(row[1])
 			strlen_padded = strlen
 			# Always pad to 2 bytes
@@ -240,16 +251,16 @@ def cmd_regions(args):
 		w = csv.writer(f, delimiter=",", quotechar='"')
 		w.writerow(header)
 		for e in regions:
-			w.writerow( ["0x{0:08x}".format(e[0]), "{0:d}".format(e[1])] )
-		print("Wrote {0:d} memory regions to {1}".format(len(regions), f.name))
+			w.writerow( [f"0x{e[0]:08x}", f"{e[1]:d}"] )
+		print(f"Wrote {len(regions):d} memory regions to {f.name}")
 	
 	# Count total length
 	total_bytes = 0
 	for r in regions:
 		total_bytes += r[1]
-	print("Total {0:d} bytes available".format(total_bytes))
+	print(f"Total {total_bytes:d} bytes available")
 
-def cmd_repack(args):
+def cmd_inject(args):
 	if len(args) != 3:
 		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin> <strings.csv> <regions.csv>")
 		return
@@ -261,7 +272,7 @@ def cmd_repack(args):
 	
 	# Check if ROM is valid, swap if necessary
 	startptr = struct.unpack(">I", data[0:4])[0]
-	if not startptr in valid_pointers:
+	if not startptr in VALID_POINTERS:
 		print("Doesn't look like a valid ROM")
 		return
 	
@@ -278,9 +289,6 @@ def cmd_repack(args):
 				text = row[2]
 			text_data = string_unescape(text).encode("shift-jis")
 			
-			if should_warn_string(text_data):
-				print(f"Warning: data at 0x{origin:08X} might not be a string. Repacking anyway.")
-			
 			text_data += b"\x00"
 			need_len = len(text_data)
 			string_data_needed += need_len
@@ -288,15 +296,15 @@ def cmd_repack(args):
 	
 	# Gather all valid rom pointers
 	# (ptrloc, strloc, strdata)
-	pointers_in_rom = gather_strings(data, valid_pointers)
-	print("Found {0:d} pointers in ROM".format(len(pointers_in_rom)))
+	pointers_in_rom = gather_strings(data, VALID_POINTERS)
+	print(f"Found {len(pointers_in_rom):d} pointers in ROM")
 	pointers_to_change = 0
 	
 	for r in pointers_in_rom:
 		if r[1] in strings:
 			strings[r[1]][2].append(r[0])
 			pointers_to_change += 1
-	print("Of which {0:d} will be updated".format(pointers_to_change))
+	print(f"Of which {pointers_to_change:d} will be updated")
 	
 	regions = []
 	available_bytes = 0
@@ -310,7 +318,7 @@ def cmd_repack(args):
 			regions.append( (start, length) )
 			available_bytes += length
 	
-	print("New strings take up {0:d} bytes, space available {1:d} bytes".format(string_data_needed, available_bytes))
+	print(f"New strings take up {string_data_needed:d} bytes, space available {available_bytes:d} bytes")
 	if string_data_needed > available_bytes:
 		print("Not enough space! Shorten strings or add more regions")
 		return
@@ -362,17 +370,61 @@ def cmd_repack(args):
 		
 		# Update pointers
 		for p in s[2]:
-			newdata[p:p+4] = struct.pack(">I", fit_start+rombase)
+			newdata[p:p+4] = struct.pack(">I", fit_start+ROM_BASE)
 		
-	print("All strings inserted successfully")
+	print("All strings injected successfully")
 	
 	# Write the new ROM
-	with open(change_suffix_filename(args[1], "_strings", "_repack", ".bin"), "wb") as f:
+	with open(change_suffix_filename(args[1], "_strings", "_inject", ".bin"), "wb") as f:
 		f.write(bytes(newdata))
-		print("Wrote repacked ROM to {0}".format(f.name))
+		print(f"Wrote injected ROM to {f.name}")
+
+def cmd_reclean(args):
+	if len(args) != 2:
+		print("Usage:", sys.argv[0], sys.argv[1], "<old_clean.csv> <new_strings.csv>")
+		return
+	
+	# Load new strings into a dictionary by origin address
+	new_strings = {} # origin: (text_jp, origin_length)
+	ns_count = 0
+	with open(args[1], newline='', encoding="utf-8") as fn:
+		cr = csv.reader(fn, delimiter=",", quotechar='"')
+		for i, row in enumerate(cr):
+			if i == 0 or row[0].startswith("#"):
+				continue
+			origin = int(row[0], 16)
+			text_jp = row[2]
+			origin_length = row[1]
+			ns_count += 1
+			if origin in new_strings:
+				print(f"Warning: duplicate string at 0x{origin:08X} in new strings")
+			new_strings[origin] = (text_jp, origin_length)
+	print(f"Loaded {ns_count} new strings")
+	
+	# Use old file as template, replacing strings line by line
+	rewritten = 0
+	with open(change_suffix_filename(args[1], "_strings", "_reclean", ".csv"), "w", encoding="utf-8") as fclean:
+		with open(args[0], newline='', encoding="utf-8") as ftemplate:
+			for i, row_raw in enumerate(ftemplate.readlines()):
+				row = next(csv.reader([row_raw], delimiter=",", quotechar='"'))
+				if i == 0 or row[0].startswith("#"):
+					# Preserve header and comments
+					fclean.write(row_raw.replace("\r",""))
+					continue
+				origin = int(row[0], 16)
+				if origin in new_strings:
+					ns = new_strings[origin]
+					row[1] = ns[1] # update origin_length just in case
+					row[2] = csv_quote(ns[0]) # update text_jp
+					row[3] = csv_quote(row[3]) # requote text_en because csv.reader unquoted
+					fclean.write(",".join(row)+"\n")
+					rewritten += 1
+				else:
+					print(f"Warning: string at {template_row[0]} is missing from new string list, omitted")
+		print(f"Rewrote {rewritten} clean strings to {fclean.name}")
 
 def handle_command():
-	commands = {"unpack":cmd_unpack, "regions":cmd_regions, "repack":cmd_repack}
+	commands = {"extract":cmd_extract, "regions":cmd_regions, "inject":cmd_inject, "reclean":cmd_reclean}
 	if len(sys.argv) > 1:
 		command = sys.argv[1].lower()
 		args = sys.argv[2:]
