@@ -1,8 +1,8 @@
-CUTAWAY_TOP = true;
+CUTAWAY_TOP = false;
 CUTAWAY_SIDE = false;
-MODEL = "B";
-SHOW_PARTS = true;
-TRANSFORM = 0;
+MODEL = "D";
+SHOW_PARTS = false;
+TRANSFORM = 1;
 
 BOARD_CLIP_DEPTH = 0.4;
 BOARD_SIDE_TOL = 0.1;
@@ -16,16 +16,18 @@ module mirrcpy(axis) {
 }
 
 module final_transform() {
+    MODEL_LENGTH = (MODEL == "D") ? 15 : 20;
+    MODEL_HEIGHT = (MODEL == "D") ? 3 : 2.4;
     if(TRANSFORM == 3) {
         rotate([90,0,0])
         children();
     } else if(TRANSFORM == 2) {
         rotate([-90,0,0])
-        translate([0,-20,0])
+        translate([0,-MODEL_LENGTH,0])
         children();
     } else if(TRANSFORM == 1) {
-        translate([0,-10,2.4])
-        rotate([0,180,0])
+        translate([0,-MODEL_LENGTH/2,MODEL_HEIGHT])
+        //rotate([0,180,0])
         children();
     } else children();
 }
@@ -57,7 +59,7 @@ module slice_between_a(t, f=0.4) {
     ]);
 }
 
-module slice_contact_b(t, f=0.15) {
+module slice_contact_bc(t) {
     st = 0;
     gen_slice(t) {
         // Front
@@ -85,7 +87,7 @@ module slice_contact_b(t, f=0.15) {
     }
 }
 
-module slice_between_b(t, f=0.15) {
+module slice_between_bc(t, f=0.15) {
     tt = BOARD_THICK_TOL;
     gen_slice(t) {
         // Front
@@ -101,7 +103,7 @@ module slice_between_b(t, f=0.15) {
     }
 }
 
-module end(inner=5) {
+module end_abc(inner=5) {
     b = BOARD_CLIP_DEPTH;
     tt = BOARD_THICK_TOL;
     difference() {
@@ -121,35 +123,105 @@ module end(inner=5) {
                 [7,0.8+tt], [6,0.8],
                 [1,0.8], [0,1.3]
             ]);
-            translate([11,5,1.2])
+            translate([11-EPSILON,5,1])
             rotate([0,90,0])
-            cylinder(h=0.2, r1=0.45, r2=0.2, $fn=16);
+            cylinder(h=0.5, r1=0.7, r2=0.2, $fn=16);
         }
         translate([10-0.1,-1,-2.4-0.1])
         rotate([0,45,0]) cube([2,10,2]);
     }
 }
 
+module slice_contact_d(t) {
+    gen_slice(t) {
+        // Middle
+        polygon([
+            [15.0,0.0], [15.0,0.3],
+            [12.3,0.3], [11.4,0.6],
+            [11.4,0.3], [10.6,0.3],
+            [10.6,0.0]
+        ]);
+        // Outer
+        polygon([
+            [15.0,3.0], [8.5,3.0],
+            [8.0,2.4], [0.0,2.4],
+            [0.0,1.3], [1.0,0.8],
+            [2.8,0.8], [2.2,1.3],
+            [1.5,1.3], [1.0,1.7],
+            [1.0,1.8], [8.0,1.8],
+            [10.0,1.9], [15.0,1.9]
+        ]);
+    }
+}
+
+module slice_between_d(t) {
+    gen_slice(t) {
+        // Outer
+        polygon([
+            [15.0,3.0], [8.5,3.0],
+            [8.0,2.4], [0.0,2.4],
+            [0.0,1.3], [1.0,0.8],
+            [7.0,0.8], [7.0,0.0],
+            [15.0,0.0]
+        ]);
+    }
+}
+
+module end_d(inner=5) {
+    difference() {
+        union() {
+            linear_extrude(4, center=true, convexity=10)
+            polygon([
+                [9.5,1.0], [10.0,0.0],
+                [11.0,0.0], [11.0,15.0],
+                [inner,15.0], [inner,7.0],
+                [9.0,7.0], [9.8,6.0],
+                [9.8,2.0], [9.5,2.0]
+            ]);
+            translate([(11+inner)/2,0,0])
+            gen_slice(11-inner)
+            polygon([
+                [0.0,2.4], [8.0,2.4],
+                [8.5,3.0], [15.0,3.0],
+                [15.0,0.0], [7.0,0.0],
+                [7.0,0.8], [1.0,0.8],
+                [0.0,1.3]
+            ]);
+            translate([11-EPSILON,5,1])
+            rotate([0,90,0])
+            cylinder(h=0.5, r1=0.7, r2=0.2, $fn=16);
+        }
+        translate([10-0.1,-1,-2.4-0.1])
+        rotate([0,45,0]) cube([2,9,2]);
+    }
+}
+
 module shell() {
     difference() {
         union() mirrcpy([1,0,0]) {
-            if(MODEL == "C") {
+            if(MODEL == "D") {
+                for(m=[0,2,4,6,8]) translate([m,0,0])
+                    slice_between_d(0.5);
+                for(m=[1,3,5,7]) translate([m,0,0])
+                    slice_contact_d(1.5+EPSILON);
+                end_d(8.25-EPSILON);
+            } else if(MODEL == "C") {
                 translate([8,0,0])
-                    slice_between_b(1+EPSILON);
-                slice_contact_b(15.2);
-                end(8.5);
+                    slice_between_bc(1+EPSILON);
+                slice_contact_bc(15.2);
+                end_abc(8.5);
             } else if(MODEL == "B") {
                 for(m=[0,2,4,6,8]) translate([m,0,0])
-                    slice_between_b(0.8+EPSILON);
+                    slice_between_bc(0.8+EPSILON);
                 for(m=[1,3,5,7]) translate([m,0,0])
-                    slice_contact_b(1.2);
-                end(8.4);
+                    slice_contact_bc(1.2);
+                end_abc(8.4);
             } else {
                 for(m=[0,2,4,6,8]) translate([m,0,0])
                     slice_between_a(0.8+EPSILON);
                 for(m=[1,3,5,7]) translate([m,0,0])
                     slice_contact_a(1.2);
-                end(8.4);
+                end_abc(8.4);
             }
         }
     }
@@ -180,9 +252,9 @@ final_transform() {
     if($preview) difference() {
         shell();
         if(CUTAWAY_TOP) translate([-12,-1,0])
-            cube([24,22,2.5]);
-        if(CUTAWAY_SIDE) translate([-12,-1,-2.5])
-            cube([12,22,5]);
+            cube([24,22,5]);
+        if(CUTAWAY_SIDE) translate([-12,-1,-5])
+            cube([12,22,10]);
     } else shell();
     if($preview && SHOW_PARTS) preview_parts();
 }

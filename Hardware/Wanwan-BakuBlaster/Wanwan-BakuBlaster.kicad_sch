@@ -1631,7 +1631,7 @@
     (pin "1" (uuid 04b9db4c-27ec-411b-8ec0-1d9ef1982121))
     (pin "2" (uuid f0aa2a2b-32ef-4ff8-9bf9-ef8fd482fc1d))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R24") (unit 1)
         )
@@ -1656,7 +1656,7 @@
     )
     (pin "1" (uuid 0d6d1e80-f38b-4cf0-95b3-670dcb94a133))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP14") (unit 1)
         )
@@ -1681,7 +1681,7 @@
     )
     (pin "1" (uuid 386bb0b2-ae82-4db3-9b7b-f7a8d0099744))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR05") (unit 1)
         )
@@ -1695,7 +1695,7 @@
     (property "Reference" "R1" (at 27.94 35.56 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "1K" (at 27.94 38.1 90)
+    (property "Value" "DNP" (at 27.94 38.1 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 27.94 39.878 90)
@@ -1707,7 +1707,7 @@
     (pin "1" (uuid 490988e6-bd16-4358-9d1f-ad83a98e1723))
     (pin "2" (uuid 5bec1a8e-9e5e-42ec-a9f4-c5458fc8ca73))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R1") (unit 1)
         )
@@ -1733,7 +1733,7 @@
     (pin "1" (uuid 29c0ad46-d71d-409a-b10f-5fdac16adedd))
     (pin "2" (uuid 61d448d1-5b48-47ea-84c6-dcea07fe9710))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C3") (unit 1)
         )
@@ -1758,7 +1758,7 @@
     )
     (pin "1" (uuid 9cf86324-5dea-4f96-88d2-3241b45a32c0))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP11") (unit 1)
         )
@@ -1783,7 +1783,7 @@
     )
     (pin "1" (uuid 3f35125f-69e3-4d3b-a61f-e87d7f8b4390))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP8") (unit 1)
         )
@@ -1797,7 +1797,7 @@
     (property "Reference" "R27" (at 66.04 85.09 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "1K" (at 66.04 82.55 90)
+    (property "Value" "DNP" (at 66.04 82.55 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 66.04 84.328 90)
@@ -1809,7 +1809,7 @@
     (pin "1" (uuid 03418289-1e6f-404c-9d5d-800769610798))
     (pin "2" (uuid d1d72e88-34b7-4b16-9cad-123903d35ed7))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R27") (unit 1)
         )
@@ -1823,7 +1823,7 @@
     (property "Reference" "R3" (at 27.94 41.91 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "1K" (at 27.94 44.45 90)
+    (property "Value" "DNP" (at 27.94 44.45 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 27.94 46.228 90)
@@ -1835,7 +1835,7 @@
     (pin "1" (uuid b1c9d60a-41d1-40a2-bccc-f10b17f4498f))
     (pin "2" (uuid 59b01b7d-4630-4ca9-9732-7aeead5bf0c7))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R3") (unit 1)
         )
@@ -1860,7 +1860,7 @@
     )
     (pin "1" (uuid f71cf1c4-9f54-41b0-8686-729ccee6e2bf))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP19") (unit 1)
         )
@@ -1874,7 +1874,7 @@
     (property "Reference" "R21" (at 27.94 99.06 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "1K" (at 27.94 101.6 90)
+    (property "Value" "DNP" (at 27.94 101.6 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 27.94 103.378 90)
@@ -1886,7 +1886,7 @@
     (pin "1" (uuid 4859930c-62a1-4575-ac64-be5189a30a63))
     (pin "2" (uuid df1a05a4-6f8a-4175-ba49-11678bb103f4))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R21") (unit 1)
         )
@@ -1911,7 +1911,7 @@
     )
     (pin "1" (uuid cdf91953-3047-457f-ba42-aed8706f0bbb))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP18") (unit 1)
         )
@@ -1937,7 +1937,7 @@
     (pin "1" (uuid 52c25ad5-62b9-4321-8bfb-e000a88793a9))
     (pin "2" (uuid 82b2ed77-5f16-408f-8a9e-3f3f522f18bb))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "JP1") (unit 1)
         )
@@ -1963,7 +1963,7 @@
     (pin "1" (uuid 0eaa6687-cf39-4186-ab7b-9a7cf3529e7a))
     (pin "2" (uuid 3bd5938b-ab38-4458-92c1-c9a9778d71a6))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R7") (unit 1)
         )
@@ -1988,7 +1988,7 @@
     )
     (pin "1" (uuid c783f3ff-0da9-43b7-9f25-b1fbb2303ebb))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#FLG03") (unit 1)
         )
@@ -2014,7 +2014,7 @@
     (pin "1" (uuid bf325f70-77d6-4f03-af56-05058858491b))
     (pin "2" (uuid 77b96dc5-45e8-4e7f-9eb0-f468897657a0))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R33") (unit 1)
         )
@@ -2040,7 +2040,7 @@
     (pin "1" (uuid 54659c56-98a2-443f-a1ee-cd02162b8c05))
     (pin "2" (uuid 53648824-d2b2-46d7-8651-436257cd8ede))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R16") (unit 1)
         )
@@ -2066,7 +2066,7 @@
     (pin "1" (uuid 4ff824c6-a680-4966-848f-4d0c49544cde))
     (pin "2" (uuid 1c1d2836-72ca-4b33-94e4-a66365a0992d))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R34") (unit 1)
         )
@@ -2092,7 +2092,7 @@
     (pin "1" (uuid 5ee8182a-0a47-4f36-a300-855be7a0a213))
     (pin "2" (uuid 25c9c7d1-e715-475b-8b26-aabf8ed82b33))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R14") (unit 1)
         )
@@ -2117,7 +2117,7 @@
     )
     (pin "1" (uuid 71348e60-229c-440f-83f4-ec123bc2c5e8))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP10") (unit 1)
         )
@@ -2131,7 +2131,7 @@
     (property "Reference" "R19" (at 27.94 92.71 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "1K" (at 27.94 95.25 90)
+    (property "Value" "DNP" (at 27.94 95.25 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 27.94 97.028 90)
@@ -2143,7 +2143,7 @@
     (pin "1" (uuid 98124fa4-23e4-4ab8-86f8-bb665e7480ea))
     (pin "2" (uuid 3812416b-48b1-4293-a28a-771eb71cb701))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R19") (unit 1)
         )
@@ -2169,7 +2169,7 @@
     (pin "1" (uuid 97e32345-857d-43c2-ac0c-ee9056d5b09c))
     (pin "2" (uuid b15db7f2-8c10-4ab7-a8f7-6c1d13551644))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C4") (unit 1)
         )
@@ -2195,7 +2195,7 @@
     (pin "1" (uuid ea688eab-1834-4539-a0e1-18cba83f0f57))
     (pin "2" (uuid cb88dd92-c21b-4a5d-9ffc-d1ccb531f345))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R26") (unit 1)
         )
@@ -2221,7 +2221,7 @@
     (pin "1" (uuid 2f97177c-0dea-4ebe-901c-cc066973f7e4))
     (pin "2" (uuid e9a461b8-af99-4189-bdcb-57b591efd24e))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R8") (unit 1)
         )
@@ -2246,7 +2246,7 @@
     )
     (pin "1" (uuid e4e38a3f-62c2-496c-9c64-1144cad3edcf))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP6") (unit 1)
         )
@@ -2271,7 +2271,7 @@
     )
     (pin "1" (uuid 4d33b893-489b-4b8e-8503-ac12b5de105f))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP16") (unit 1)
         )
@@ -2296,7 +2296,7 @@
     )
     (pin "1" (uuid 54cda70a-405b-40af-bf3b-94fc336a7072))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR013") (unit 1)
         )
@@ -2321,7 +2321,7 @@
     )
     (pin "1" (uuid b64fc461-fa92-4ba3-a6dc-fa884de8f91b))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP1") (unit 1)
         )
@@ -2353,7 +2353,7 @@
     (pin "4" (uuid 0fca6f82-95de-4c4b-9837-ef8b0d701ada))
     (pin "8" (uuid ac69076e-ca95-4942-96dc-6429b4c1f56f))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "U3") (unit 2)
         )
@@ -2378,7 +2378,7 @@
     )
     (pin "1" (uuid 5b9f234d-ce40-426c-82ee-5cfd7eb8cdf3))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR01") (unit 1)
         )
@@ -2404,7 +2404,7 @@
     (pin "1" (uuid c3eb223d-caa2-42e2-b615-7fe0b940afa1))
     (pin "2" (uuid 80a885da-698f-475c-81f5-15c82d8d8aa4))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R11") (unit 1)
         )
@@ -2435,7 +2435,7 @@
     (pin "6" (uuid 321d53be-1654-4535-8bef-38d64d3e5f90))
     (pin "8" (uuid 8ba8ea1c-5eef-43d8-a0aa-08e4b8ec4138))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "U2") (unit 1)
         )
@@ -2460,7 +2460,7 @@
     )
     (pin "1" (uuid 4ac6e04c-1441-40af-8e01-c48221a8c4a2))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR010") (unit 1)
         )
@@ -2486,7 +2486,7 @@
     (pin "1" (uuid 8e488f7c-1fee-4792-86ac-80b711382baf))
     (pin "2" (uuid 6d534e31-2271-46dc-a728-3ca5fa2af730))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R10") (unit 1)
         )
@@ -2512,7 +2512,7 @@
     (pin "1" (uuid b7184b80-20ba-4d2e-aa86-1915fa7ef42d))
     (pin "2" (uuid f955827c-ad66-4f46-8962-c5f71a2a775d))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R35") (unit 1)
         )
@@ -2538,7 +2538,7 @@
     (pin "1" (uuid cf17de8e-cb8d-4e04-b9af-e5408e736adf))
     (pin "2" (uuid 4d1052ed-5969-45f9-934b-08e1a0288604))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R13") (unit 1)
         )
@@ -2564,7 +2564,7 @@
     (pin "1" (uuid 3f9ffc10-8589-4828-ab6e-4d7315dac853))
     (pin "2" (uuid b4062a9c-508a-4ada-99c6-ce7806292525))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C8") (unit 1)
         )
@@ -2590,7 +2590,7 @@
     (pin "1" (uuid a0ecf8b8-cef1-48e9-9ac7-5c8faedae02c))
     (pin "2" (uuid 65310cc3-125b-47ad-b6e4-905cadb64d9b))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R15") (unit 1)
         )
@@ -2615,7 +2615,7 @@
     )
     (pin "1" (uuid fe55f8a8-3638-4539-bff0-46f1dbeba7c9))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR09") (unit 1)
         )
@@ -2640,7 +2640,7 @@
     )
     (pin "1" (uuid 68045df9-14cf-4617-879e-a1873b41aefe))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR012") (unit 1)
         )
@@ -2665,7 +2665,7 @@
     )
     (pin "1" (uuid 000a9ccf-aef6-457b-80df-903efa22ef6a))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR011") (unit 1)
         )
@@ -2691,7 +2691,7 @@
     (pin "1" (uuid 20856ae9-b538-4f89-9b1a-7e24053d552a))
     (pin "2" (uuid 0f6564bb-42ae-4ff1-8de8-6388861d03ad))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C1") (unit 1)
         )
@@ -2716,7 +2716,7 @@
     )
     (pin "1" (uuid c77b1597-09a7-4a81-b527-12be72daadea))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR022") (unit 1)
         )
@@ -2741,7 +2741,7 @@
     )
     (pin "1" (uuid 1ce0c28f-4ac0-4ebf-836e-137b22ffe332))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP4") (unit 1)
         )
@@ -2773,7 +2773,7 @@
     (pin "4" (uuid 88f41b5b-ee4c-4d48-935a-19e64b04d48b))
     (pin "8" (uuid a98395db-433b-4aad-8117-b90ccf4c9bbf))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "U3") (unit 3)
         )
@@ -2799,7 +2799,7 @@
     (pin "1" (uuid 01ef835f-42dd-424f-b2ad-609d37e4f1ee))
     (pin "2" (uuid 580fc1ed-2d9c-4ce1-8401-baf9636a2d1f))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R30") (unit 1)
         )
@@ -2825,7 +2825,7 @@
     (pin "1" (uuid 17a1e0ec-03e6-436d-9acc-0d53a8c396d6))
     (pin "2" (uuid 475e65fe-454e-4648-a2b0-dab1c79b19cf))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R4") (unit 1)
         )
@@ -2850,7 +2850,7 @@
     )
     (pin "1" (uuid fcee4434-5d6b-4f91-8df6-b9615c75e8b0))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR04") (unit 1)
         )
@@ -2876,7 +2876,7 @@
     (pin "1" (uuid d6c55ffb-59ab-4602-ac55-1c4fe806bcac))
     (pin "2" (uuid a25590d4-36a6-42bd-9975-5e3ee0275150))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C9") (unit 1)
         )
@@ -2902,7 +2902,7 @@
     (pin "1" (uuid 3c36c4b0-c63a-43d7-ae65-3c3e8591aac1))
     (pin "2" (uuid cba4dba9-5f92-4a94-ba07-f4c6badca327))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R22") (unit 1)
         )
@@ -2927,7 +2927,7 @@
     )
     (pin "1" (uuid 738ba74c-54af-4a15-a227-79aeb7ae31d9))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP12") (unit 1)
         )
@@ -2953,7 +2953,7 @@
     (pin "1" (uuid 35ba3cb4-ff73-46ef-94bc-1e64eb3bef37))
     (pin "2" (uuid 300060bf-eb47-4d51-9711-af33ce6bb762))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C5") (unit 1)
         )
@@ -2978,7 +2978,7 @@
     )
     (pin "1" (uuid dd977028-b8ce-4ada-94e0-1ec97b60be46))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#FLG02") (unit 1)
         )
@@ -3004,7 +3004,7 @@
     (pin "1" (uuid 70f9d162-cfa1-4390-be65-a1dfc2a3e393))
     (pin "2" (uuid 1f8d2925-be71-4dc1-9f27-4c6b4df72252))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C2") (unit 1)
         )
@@ -3031,7 +3031,7 @@
     (pin "2" (uuid 767aec1a-c17b-40a4-83e2-4d3b8bc7edf1))
     (pin "3" (uuid 9131b803-c4ec-4b98-9811-3bd3208f40df))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "Q1") (unit 1)
         )
@@ -3056,7 +3056,7 @@
     )
     (pin "1" (uuid 8b4c5a1b-0842-4a58-a06f-e028c39945ee))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR014") (unit 1)
         )
@@ -3082,7 +3082,7 @@
     (pin "1" (uuid e8c40e86-4383-434c-8aec-461dfa83369d))
     (pin "2" (uuid 880133e2-e4cc-49a3-bae9-18fd80928f9b))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R36") (unit 1)
         )
@@ -3096,7 +3096,7 @@
     (property "Reference" "R25" (at 57.15 73.66 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "2K2" (at 58.42 73.66 90)
+    (property "Value" "DNP" (at 58.42 73.66 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric" (at 56.642 73.66 90)
@@ -3108,7 +3108,7 @@
     (pin "1" (uuid 9adf81ea-976e-4db9-a3eb-07a3dc58af9f))
     (pin "2" (uuid 0400c538-dab2-47c3-b73f-33501c1b364f))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R25") (unit 1)
         )
@@ -3133,7 +3133,7 @@
     )
     (pin "1" (uuid 77b9f038-da82-42fc-a1a6-ddb3ac282e0b))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR07") (unit 1)
         )
@@ -3159,7 +3159,7 @@
     (pin "1" (uuid 0af50c8f-3b8a-401a-9fad-845872feaee3))
     (pin "2" (uuid c0dcceb6-5f33-478c-be50-26ecc0f0dd86))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R18") (unit 1)
         )
@@ -3185,7 +3185,7 @@
     (pin "1" (uuid dcbb10a2-767f-4555-89dc-b910ad282cdf))
     (pin "2" (uuid 3df507a7-2cd3-4b56-a326-92924967b9df))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R12") (unit 1)
         )
@@ -3211,7 +3211,7 @@
     (pin "1" (uuid 2c77cca3-3dee-4549-a6be-8efc1cabebbb))
     (pin "2" (uuid 63bd4af3-bfcc-444d-ad92-e148301460e7))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C6") (unit 1)
         )
@@ -3236,7 +3236,7 @@
     )
     (pin "1" (uuid e7f664b4-6e1d-4bc8-b2a2-14261e4a13dd))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR08") (unit 1)
         )
@@ -3261,7 +3261,7 @@
     )
     (pin "1" (uuid 54af8d56-c056-42e9-8b53-6d880e25a4da))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR06") (unit 1)
         )
@@ -3286,7 +3286,7 @@
     )
     (pin "1" (uuid 17865062-3b49-4132-9246-b16969fca29a))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR021") (unit 1)
         )
@@ -3311,7 +3311,7 @@
     )
     (pin "1" (uuid 0136f11b-6d6f-4ae0-a534-3dc692cfc058))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP17") (unit 1)
         )
@@ -3358,7 +3358,7 @@
     (pin "8" (uuid 91480dfc-973b-4a58-a026-c202baa44754))
     (pin "9" (uuid 5832ad87-e6f5-4677-a451-161f94c9ec3c))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "U1") (unit 1)
         )
@@ -3384,7 +3384,7 @@
     (pin "1" (uuid 0c7eed47-9177-420e-8b90-d3af67d41626))
     (pin "2" (uuid 11f9e5fb-2e35-46de-ae0c-48ecbaa94e89))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R23") (unit 1)
         )
@@ -3410,7 +3410,7 @@
     (pin "1" (uuid f9e6e247-2ddf-40c1-a00a-80891bfee269))
     (pin "2" (uuid 3c8ffffe-27cb-4870-8587-84c4aa3239ac))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R5") (unit 1)
         )
@@ -3436,7 +3436,7 @@
     (pin "1" (uuid c11bfafe-0209-42fb-86bf-1aaa82e05af4))
     (pin "2" (uuid 053fdc83-7d9a-4211-8919-8a2ffb2c44ab))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R17") (unit 1)
         )
@@ -3461,7 +3461,7 @@
     )
     (pin "1" (uuid 42490b14-bcf9-41ce-b627-37e18157734c))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR03") (unit 1)
         )
@@ -3486,7 +3486,7 @@
     )
     (pin "1" (uuid 42d3ab01-1272-4178-8515-7cec7c78e7ed))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR020") (unit 1)
         )
@@ -3511,7 +3511,7 @@
     )
     (pin "1" (uuid 15ea0dbc-c384-464c-9810-78838f526a05))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP9") (unit 1)
         )
@@ -3536,7 +3536,7 @@
     )
     (pin "1" (uuid 6824b3e7-58ab-4ddf-8fcf-151ec63826c7))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#PWR02") (unit 1)
         )
@@ -3561,7 +3561,7 @@
     )
     (pin "1" (uuid eb1124c3-bfc6-4fda-9660-d547cd3c2a90))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP15") (unit 1)
         )
@@ -3586,7 +3586,7 @@
     )
     (pin "1" (uuid f016fb30-3f3c-4ca2-a15d-eebd9d09d00e))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "#FLG01") (unit 1)
         )
@@ -3612,7 +3612,7 @@
     (pin "1" (uuid e51f9dfd-0c7f-4772-ae49-42f4e7b77508))
     (pin "2" (uuid 8c12e0ca-997b-40b0-aeed-03de5f7b7ac2))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R20") (unit 1)
         )
@@ -3644,7 +3644,7 @@
     (pin "4" (uuid 795115c7-3141-4993-8daf-92f7e5cde749))
     (pin "8" (uuid 214e6640-a62d-48e8-847c-9af9785f9c7e))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "U3") (unit 1)
         )
@@ -3670,7 +3670,7 @@
     (pin "1" (uuid f3deea25-d8c4-4102-b312-0e812f26ab0f))
     (pin "2" (uuid 78d900d1-11c6-4b9a-a625-134b02bb705b))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "C7") (unit 1)
         )
@@ -3695,7 +3695,7 @@
     )
     (pin "1" (uuid 70deb2da-1394-41a2-b052-ca75ed37fceb))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP7") (unit 1)
         )
@@ -3721,7 +3721,7 @@
     (pin "1" (uuid 6ff42ca4-d169-4075-8b9e-591a07623e4f))
     (pin "2" (uuid 44cec95d-48c5-486b-bcd0-932b6c36de1d))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R31") (unit 1)
         )
@@ -3746,7 +3746,7 @@
     )
     (pin "1" (uuid 4bef8786-add0-43d4-a4a2-87c1619a0f68))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP5") (unit 1)
         )
@@ -3772,7 +3772,7 @@
     (pin "1" (uuid 6c9378e6-7a60-46d8-b127-f19df74e2de4))
     (pin "2" (uuid 64d1d6b8-7dc1-47ed-a0d1-24d9ce57149b))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R9") (unit 1)
         )
@@ -3797,7 +3797,7 @@
     )
     (pin "1" (uuid 55f31bb4-bfbc-40d2-92ce-3e5be86baef1))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP2") (unit 1)
         )
@@ -3822,7 +3822,7 @@
     )
     (pin "1" (uuid d8841b21-78f2-4ee1-b7b9-ff23c5003512))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP13") (unit 1)
         )
@@ -3848,7 +3848,7 @@
     (pin "1" (uuid aa66bbbf-fd61-4aab-ae91-0c0c9811a97b))
     (pin "2" (uuid 60c5868a-8c96-4462-80ad-6dda5a5e5402))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R28") (unit 1)
         )
@@ -3874,7 +3874,7 @@
     (pin "1" (uuid 3a21057f-2c72-4339-9878-a7bce3693451))
     (pin "2" (uuid 524ab664-12c4-41d1-851d-6821d4b07567))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R2") (unit 1)
         )
@@ -3900,7 +3900,7 @@
     (pin "1" (uuid e32c5f7d-2cf6-471b-9834-afbbbb054cd0))
     (pin "2" (uuid 0baa3c09-9fc9-42a9-8924-241e10c384b0))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R29") (unit 1)
         )
@@ -3926,7 +3926,7 @@
     (pin "1" (uuid d78c6d91-b522-443e-b0f2-261ac833afe7))
     (pin "2" (uuid 2b320924-5c5c-402a-9e51-bb15ba705510))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R32") (unit 1)
         )
@@ -3952,7 +3952,7 @@
     (pin "1" (uuid cd126636-1400-4ca9-9784-f87af33a2879))
     (pin "2" (uuid 778d9bb7-28fb-4a7a-9357-e69aaf1b54cb))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "R6") (unit 1)
         )
@@ -3977,7 +3977,7 @@
     )
     (pin "1" (uuid 3fd0b0ad-8fa5-41df-961a-598a08707c03))
     (instances
-      (project "Wanwan-Pico-PCM"
+      (project "Wanwan-BakuBlaster"
         (path "/c4d6ecfa-c641-4a57-9d29-3124942a8d47"
           (reference "TP3") (unit 1)
         )
