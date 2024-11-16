@@ -363,9 +363,9 @@ def cmd_inject(args, cmdline):
 			origin = int(row["origin"], 16)
 			text = row["text_translated"] or row["text_original"]
 			pointers = []
-			for p in row["pointers"].split(","):
+			for p in row["pointers"].split(";"):
 				pn = int(p, 16)
-				if pn in valid_range:
+				if pn in VALID_POINTERS:
 					pointers.append(pn)
 				else:
 					print(f"Warning: pointer \"{p}\" for string at 0x{origin:08X} invalid or out of range.")
