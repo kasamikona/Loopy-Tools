@@ -67,7 +67,7 @@ def string_escape(string_raw):
 	for c in string_raw:
 		if ord(c) < 0x20:
 			string_hex += f"\\x{ord(c):02x}"
-			print("Warning: escaped ASCII control code in string "+str(string_raw.encode("shift-jis")))
+			print("Warning: escaped non-printable ASCII in string "+str(string_raw.encode("shift-jis")))
 		elif c == "\\":
 			string_hex += "\\\\"
 		else:
@@ -163,15 +163,6 @@ def change_suffix(s, change_from, change_to):
 #def change_suffix_filename(s, change_from, change_to, extension):
 #	return change_suffix(os.path.splitext(s)[0], change_from, change_to)+extension
 
-def csv_quote(s):
-	qs = '"'
-	for ch in s:
-		qs += ch
-		if ch == '"':
-			qs += ch
-	qs += '"'
-	return qs
-
 def csv_decomment(csvfile):
 	for row in csvfile:
 		raw = row.split('#')[0].strip()
@@ -248,7 +239,7 @@ def cmd_extract(args, cmdline):
 			cw.writerow({
 				"origin":          f"0x{e[0]:08X}", # origin address in hex
 				"origin_length":   f"{e[1]:d}",
-				"text_original":   csv_quote(string_escape(e[2].decode("shift-jis"))),
+				"text_original":   string_escape(e[2].decode("shift-jis")),
 				"text_translated": "", # to be filled by user
 				"pointers":        ";".join([f"0x{p:08X}" for p in e[3]]) # pointers separated by semicolon
 			})
