@@ -2,12 +2,12 @@ import sys, struct, csv, os
 
 ROM_BASE = 0x0E000000
 VALID_POINTERS = range(ROM_BASE, ROM_BASE+0x400000, 4)
-REPACK_FOR_HALFWIDTH = False
+REPACK_ALT_MAPPING = False
 
 def should_exclude_string(data):
 	for ch in data:
-		#if (ch < 0x20 and not (ch == 0x09 or ch == 0x0A or ch == 0x0D)) or ch == 0x7F:
-		if ch < 0x20 or ch == 0x7F:
+		if (ch < 0x20 and not (ch in b"\x09\x0A\x0D")) or ch == 0x7F:
+		#if ch < 0x20 or ch == 0x7F:
 			return True
 	try:
 		data.decode("shift-jis")
@@ -35,7 +35,19 @@ def string_escape(string_raw):
 	if not string_raw:
 		return "{empty}"
 	
-	string_esc = ""
+	mapping = {
+		"!": "{opt}",
+		"#": "{aopt}",
+		">": "{hsp}",
+		"@": "{fast}",
+		"c": "{clr}", "C": "{clr}",
+		"k": "{np}", "K": "{np}",
+		"n": "{nl}", "N": "{nl}",
+		"^": "{slow}",
+		"%B": "{baku}",
+		"%M": "{momo}",
+	}
+	
 	
 	is_ascii = True
 	has_noncontrol_ascii = False
@@ -43,61 +55,100 @@ def string_escape(string_raw):
 		if ord(c) > 0x7E:
 			is_ascii = False
 			break
-		elif c not in "!#>@CcKkNn^%BM":
+		elif c not in "!#@>CcKkNn^%BMDdXxcs0123456789.":
 			has_noncontrol_ascii = True
 	
 	is_ascii = is_ascii & has_noncontrol_ascii
-	
 	if is_ascii:
-		#print("Warning: plain ASCII string "+str(string_raw.encode("sjis")))
-		for c in string_raw:
-			if ord(c) < 0x20:
-				string_esc += f"\\x{ord(c):02x}"
-				print("Warning: escaped ASCII control code in string "+str(string_raw.encode("sjis")))
-			else:
-				string_esc += c
-	else:
-		for c in string_raw:
-			if ord(c) < 0x20:
-				string_esc += f"\\x{ord(c):02x}"
-				print("Warning: escaped ASCII control code in string "+str(string_raw.encode("sjis")))
-			elif c == "!":
-				string_esc += "{opt}"
-			elif c == "#":
-				string_esc += "{aopt}"
-			elif c == ">":
-				string_esc += "{hsp}"
-			elif c == "@":
-				string_esc += "{fast}"
-			elif c == "C" or c == "c":
-				string_esc += "{clr}"
-			elif c == "K" or c == "k":
-				string_esc += "{np}"
-			elif c == "N" or c == "n":
-				string_esc += "{nl}"
-			elif c == "^":
-				string_esc += "{slow}"
-			else:
-				string_esc += c
+		#print("Warning: plain ASCII string "+str(string_raw.encode("shift-jis")))
+		pass
+	
+	string_hex = ""
+	for c in string_raw:
+		if ord(c) < 0x20:
+			string_hex += f"\\x{ord(c):02x}"
+			print("Warning: escaped ASCII control code in string "+str(string_raw.encode("shift-jis")))
+		elif c == "\\":
+			string_hex += "\\\\"
+		else:
+			string_hex += c
+	
+	string_esc = string_hex
+	if not is_ascii:
+		string_esc = ""
+		i = 0
+		maxsrc = max([len(x) for x in mapping.keys()])
+		while i < len(string_hex):
+			matched = False
+			for src,dst in mapping.items():
+				if string_hex[i:i+maxsrc].startswith(src):
+					string_esc += dst
+					i += len(src)
+					matched = True
+					break
+			if not matched:
+				string_esc += string_hex[i]
+				i += 1
 	
 	# Test round-trip
 	string_roundtrip = string_unescape(string_esc, False)
 	if string_roundtrip.lower() != string_raw.lower() or (is_ascii and string_roundtrip != string_raw):
-		raise Exception(f"Round-trip error for string {string_raw} -> {string_esc} -> {string_roundtrip}")
+		raise Exception(f"Round-trip error for string {string_raw.encode('shift-jis')} -> {string_esc.encode('shift-jis')} -> {string_roundtrip.encode('shift-jis')}")
 	
 	return string_esc
 
 def string_unescape(string_esc, alternate_mapping):
-	shorten = {"option":"opt","altoption":"aopt","halfspace":"hsp","clear":"clr","newpage":"np","newline":"nl","nofast":"slow"}
-	mapping = {"opt":"!","aopt":"#","hsp":">","fast":"@","clr":"c","np":"k","nl":"n","slow":"^"}
 	if alternate_mapping:
-		mapping = {"opt":"\x19","aopt":"\x1A","hsp":"\x1F","fast":"\x1B","clr":"\x1C","np":"\x1D","nl":"\x1E","slow":"\x18"}
-	string_raw = string_esc.replace("{empty}","")
-	for k,v in mapping.items():
-		string_raw = string_raw.replace("{"+k+"}",v)
-	for k,v in shorten.items():
-		string_raw = string_raw.replace("{"+k+"}",mapping[v])
-	return string_raw
+		mapping = {
+			"\x19": ["{opt}","{option}"],
+			"\x1A": ["{aopt}","{altoption}"],
+			"\x1F": ["{hsp}","{halfspace}"],
+			"\x1B": ["{fast}"],
+			"\x1C": ["{clr}","{clear}"],
+			"\x1D": ["{np}","{newpage}"],
+			"\x1E": ["{nl}","{newline}"],
+			"\x18": ["{slow}","{nofast}"],
+			"%B": ["{baku}","{dog}","{doggie}"],
+			"%M": ["{momo}","{player}","{momomo}"],
+			"": ["{empty}","{nul}"],
+		}
+	else:
+		mapping = {
+			"!": ["{opt}","{option}"],
+			"#": ["{aopt}","{altoption}"],
+			">": ["{hsp}","{halfspace}"],
+			"@": ["{fast}"],
+			"c": ["{clr}","{clear}"],
+			"k": ["{np}","{newpage}"],
+			"n": ["{nl}","{newline}"],
+			"^": ["{slow}","{nofast}"],
+			"%B": ["{baku}","{dog}","{doggie}"],
+			"%M": ["{momo}","{player}","{momomo}"],
+			"": ["{empty}","{nul}"],
+		}
+	
+	string_raw = string_esc
+	
+	for dst,srcs in mapping.items():
+		for src in srcs:
+			string_raw = string_raw.replace(src,dst)
+	
+	# Python really has no clean way to just parse this escape style in a unicode string
+	# so we manually do the ones we care about
+	string_unhex = ""
+	i = 0
+	while i < len(string_raw):
+		e = string_raw[i:i+4]
+		if len(e) == 4 and e[:2].lower() == "\\x":
+			string_unhex += chr(int(e[2:],16))
+			i += 4
+		elif len(e) >= 2 and e[:2] == "\\\\":
+			string_unhex += "\\"
+			i += 2
+		else:
+			string_unhex += e[0]
+			i += 1
+	return string_unhex
 
 def change_suffix(s, change_from, change_to):
 	s2 = s
@@ -109,8 +160,8 @@ def change_suffix(s, change_from, change_to):
 		s2 = s+change_to
 	return s2
 
-def change_suffix_filename(s, change_from, change_to, extension):
-	return change_suffix(os.path.splitext(s)[0], change_from, change_to)+extension
+#def change_suffix_filename(s, change_from, change_to, extension):
+#	return change_suffix(os.path.splitext(s)[0], change_from, change_to)+extension
 
 def csv_quote(s):
 	qs = '"'
@@ -121,18 +172,43 @@ def csv_quote(s):
 	qs += '"'
 	return qs
 
-def cmd_extract(args):
-	if len(args) != 1:
-		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin>")
-		return
-	
-	with open(args[0], "rb") as f:
-		data = f.read()
-	
-	# Check if ROM is valid
+def csv_decomment(csvfile):
+	for row in csvfile:
+		raw = row.split('#')[0].strip()
+		if raw: yield raw
+
+def check_files(exist, noexist):
+	for f in exist:
+		if not os.path.exists(f):
+			print("Can't open file: "+f)
+			return False
+	for f in noexist:
+		if os.path.exists(f):
+			print("File already exists: "+f)
+			return False
+	return True
+
+def validate_rom(data):
 	startptr = struct.unpack(">I", data[0:4])[0]
 	if not startptr in VALID_POINTERS:
 		print("Doesn't look like a valid ROM")
+		return False
+	return True
+
+def cmd_extract(args, cmdline):
+	if len(args) != 2:
+		print(f"Usage: {cmdline} <rom_in.bin> <strings_out.csv>")
+		return
+	
+	path_rom_in = args[0]
+	path_strings_out = args[1]
+	
+	if not check_files(exist=[path_rom_in], noexist=[path_strings_out]):
+		return
+	
+	with open(path_rom_in, "rb") as f:
+		data = f.read()
+	if not validate_rom(data):
 		return
 	
 	# Gather all valid string pointers
@@ -164,59 +240,59 @@ def cmd_extract(args):
 	print(f"String data uses {bytes_used:d} bytes")
 	
 	# Write strings
-	with open(change_suffix_filename(args[0], None, "_strings", ".csv"), "w", encoding="utf-8") as f:
-		header = ["origin", "origin_length", "text_jp", "text_en", "pointers", "game_order"]
-		f.write(",".join(header)+"\n")
+	with open(path_strings_out, "w", newline="", encoding="utf-8") as f:
+		fields = ["origin", "origin_length", "text_original", "text_translated", "pointers"]
+		cw = csv.DictWriter(f, fieldnames=fields, delimiter=",", quotechar='"')
+		cw.writeheader()
 		for e in string_list:
-			row = [""] * len(header)
-			row[0] = f"0x{e[0]:08X}" # origin (hex)
-			row[1] = f"{e[1]:d}" # origin_length
-			row[2] = csv_quote(string_escape(e[2].decode("shift-jis"))) # text_jp
-			row[3] = '""' # text_en
-			row[4] = ";".join([f"0x{p:08X}" for p in e[3]]) # pointers (semicolon separated)
-			# 3:text_en and 5:game_order to be filled by user
-			f.write(",".join(row)+"\n")
-			
+			cw.writerow({
+				"origin":          f"0x{e[0]:08X}", # origin address in hex
+				"origin_length":   f"{e[1]:d}",
+				"text_original":   csv_quote(string_escape(e[2].decode("shift-jis"))),
+				"text_translated": "", # to be filled by user
+				"pointers":        ";".join([f"0x{p:08X}" for p in e[3]]) # pointers separated by semicolon
+			})
 		print(f"Extracted {len(string_list):d} strings to {f.name}")
 
-def cmd_regions(args):
-	if len(args) < 2:
-		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin> <strings.csv> [0xExtraStart-0xExtraEnd] ...")
+def cmd_regions(args, cmdline):
+	if len(args) < 3:
+		print(f"Usage: {cmdline} <rom_in.bin> <strings_in.csv> <regions_out.csv> [0xExtraStart-0xExtraEnd] ...")
+		print("Multiple extra regions may be given. End address is exclusive.")
+		return
+	
+	path_rom_in = args[0]
+	path_strings_in = args[1]
+	path_regions_out = args[2]
+	
+	if not check_files(exist=[path_rom_in, path_strings_in], noexist=[path_regions_out]):
 		return
 	
 	regions = [] # (start, length)
-	for i in range(2, len(args)):
+	for i in range(3, len(args)):
 		start, end = args[i].split("-")
 		start = int(start, 16)
 		end = int(end, 16)
 		length = end-start
 		regions.append( (start, length) )
 	
-	with open(args[0], "rb") as f:
+	with open(path_rom_in, "rb") as f:
 		data = f.read()
-	
-	# Check if ROM is valid
-	startptr = struct.unpack(">I", data[0:4])[0]
-	if not startptr in VALID_POINTERS:
-		print("Doesn't look like a valid ROM")
+	if not validate_rom(data):
 		return
 	
-	with open(args[1], newline='', encoding="utf-8") as f:
-		cr = csv.reader(f, delimiter=",", quotechar='"')
-		for i, row in enumerate(cr):
-			if i == 0 or row[0].startswith("#"):
-				continue
-			strloc = int(row[0], 16)-ROM_BASE
-			strlen = int(row[1])
+	with open(path_strings_in, newline="", encoding="utf-8") as f:
+		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
+		for row in cr:
+			strloc = int(row["origin"], 16)-ROM_BASE
+			strlen = int(row["origin_length"])
 			strlen_padded = strlen
-			# Always pad to 2 bytes
+			# Always pad to 2 bytes as SuperH code is generally word-aligned
 			if (strlen & 1):
 				strlen += 1
 			# Pad to 4 bytes if it looks like padding pattern
 			if (strlen & 2):
-				if data[strloc+strlen] == 0 and data[strloc+strlen+1] == 9:
-					strlen += 2
-				elif data[strloc+strlen] == 255 and data[strloc+strlen+1] == 255:
+				nextdata = struct.unpack(">H", data[strloc+strlen:strloc+strlen+2])[0]
+				if nextdata in [0x0009, 0xFFFF]:
 					strlen += 2
 			regions.append( (strloc, strlen) )
 	
@@ -246,12 +322,15 @@ def cmd_regions(args):
 			regions.append((current_start, current_len))
 
 	# Write memory regions
-	with open(change_suffix_filename(args[1], "_strings", "_regions", ".csv"), "w", encoding="utf-8", newline="") as f:
-		header = ["start", "length"]
-		w = csv.writer(f, delimiter=",", quotechar='"')
-		w.writerow(header)
+	with open(path_regions_out, "w", newline="", encoding="utf-8") as f:
+		fields = ["start", "length"]
+		cw = csv.DictWriter(f, fieldnames=fields, delimiter=",", quotechar='"')
+		cw.writeheader()
 		for e in regions:
-			w.writerow( [f"0x{e[0]:08x}", f"{e[1]:d}"] )
+			cw.writerow({
+				"start":  f"0x{e[0]:08X}",
+				"length": f"{e[1]:d}"
+			})
 		print(f"Wrote {len(regions):d} memory regions to {f.name}")
 	
 	# Count total length
@@ -260,36 +339,38 @@ def cmd_regions(args):
 		total_bytes += r[1]
 	print(f"Total {total_bytes:d} bytes available")
 
-def cmd_inject(args):
-	if len(args) != 3:
-		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin> <strings.csv> <regions.csv>")
+def cmd_inject(args, cmdline):
+	if len(args) not in [4,5]:
+		print(f"Usage: {cmdline} <rom_in.bin> <strings_in.csv> <regions_in.csv> <rom_out.bin> ['remapcc']")
 		return
 	
-	with open(args[0], "rb") as f:
+	path_rom_in = args[0]
+	path_strings_in = args[1]
+	path_regions_in = args[2]
+	path_rom_out = args[3]
+	
+	remapcc = False
+	if len(args) > 4:
+		remapcc = True
+	
+	if not check_files(exist=[path_rom_in, path_strings_in, path_regions_in], noexist=[path_rom_out]):
+		return
+	
+	with open(path_rom_in, "rb") as f:
 		data = f.read()
+	if not validate_rom(data):
+		return
 	
 	newdata = bytearray(data)
 	
-	# Check if ROM is valid, swap if necessary
-	startptr = struct.unpack(">I", data[0:4])[0]
-	if not startptr in VALID_POINTERS:
-		print("Doesn't look like a valid ROM")
-		return
-	
 	strings = {} # origin: (text_data, need_len, [pointers])
 	string_data_needed = 0
-	with open(args[1], newline='', encoding="utf-8") as f:
-		cr = csv.reader(f, delimiter=",", quotechar='"')
-		for i, row in enumerate(cr):
-			if i == 0 or row[0].startswith("#"):
-				continue
-			origin = int(row[0], 16)
-			text = row[3]
-			if len(text) == 0:
-				text = row[2]
-			text_data = string_unescape(text).encode("shift-jis")
-			
-			text_data += b"\x00"
+	with open(path_strings_in, newline="", encoding="utf-8") as f:
+		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
+		for row in cr:
+			origin = int(row["origin"], 16)
+			text = row["text_translated"] or row["text_original"]
+			text_data = string_unescape(text, remapcc).encode("shift-jis") + b"\x00"
 			need_len = len(text_data)
 			string_data_needed += need_len
 			strings[origin] = (text_data, need_len, [])
@@ -308,13 +389,11 @@ def cmd_inject(args):
 	
 	regions = []
 	available_bytes = 0
-	with open(args[2], newline='', encoding="utf-8") as f:
-		cr = csv.reader(f, delimiter=",", quotechar='"')
-		for i, row in enumerate(cr):
-			if i == 0 or row[0].startswith("#"):
-				continue
-			start = int(row[0],16)
-			length = int(row[1])
+	with open(path_regions_in, newline="", encoding="utf-8") as f:
+		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
+		for row in cr:
+			start = int(row["start"], 16)
+			length = int(row["length"])
 			regions.append( (start, length) )
 			available_bytes += length
 	
@@ -323,9 +402,13 @@ def cmd_inject(args):
 		print("Not enough space! Shorten strings or add more regions")
 		return
 	
-	# Try fit the data into the regions in a best-fit manner
-	for sk in strings:
-		s = strings[sk]
+	# Try fit the data into the regions with the chosen fitting algorithm
+	FIT_FIRST = True # first-fit, otherwise best-fit
+	FIT_DECREASING = True # decreasing (length), otherwise source order
+	strings_flat = list(strings.items())
+	if FIT_DECREASING:
+		strings_flat.sort(key=lambda x: x[1][1], reverse=True)
+	for so, s in strings_flat:
 		text_data = s[0]
 		need_len = s[1]
 		
@@ -337,13 +420,14 @@ def cmd_inject(args):
 			diff = r[1] - need_len
 			if diff < 0:
 				continue
+			if FIT_FIRST:
+				best_region = r
+				best_region_index = i
+				break
 			if best_region == None or diff < best_region_diff:
 				best_region = r
 				best_region_diff = diff
 				best_region_index = i
-			#best_region = r
-			#best_region_index = i
-			#break
 		
 		if best_region == None:
 			print("Can't fit strings with this fitting method! Shorten strings or add more regions")
@@ -375,63 +459,20 @@ def cmd_inject(args):
 	print("All strings injected successfully")
 	
 	# Write the new ROM
-	with open(change_suffix_filename(args[1], "_strings", "_inject", ".bin"), "wb") as f:
+	with open(path_rom_out, "wb") as f:
 		f.write(bytes(newdata))
 		print(f"Wrote injected ROM to {f.name}")
 
-def cmd_reclean(args):
-	if len(args) != 2:
-		print("Usage:", sys.argv[0], sys.argv[1], "<old_clean.csv> <new_strings.csv>")
-		return
-	
-	# Load new strings into a dictionary by origin address
-	new_strings = {} # origin: (text_jp, origin_length)
-	ns_count = 0
-	with open(args[1], newline='', encoding="utf-8") as fn:
-		cr = csv.reader(fn, delimiter=",", quotechar='"')
-		for i, row in enumerate(cr):
-			if i == 0 or row[0].startswith("#"):
-				continue
-			origin = int(row[0], 16)
-			text_jp = row[2]
-			origin_length = row[1]
-			ns_count += 1
-			if origin in new_strings:
-				print(f"Warning: duplicate string at 0x{origin:08X} in new strings")
-			new_strings[origin] = (text_jp, origin_length)
-	print(f"Loaded {ns_count} new strings")
-	
-	# Use old file as template, replacing strings line by line
-	rewritten = 0
-	with open(change_suffix_filename(args[1], "_strings", "_reclean", ".csv"), "w", encoding="utf-8") as fclean:
-		with open(args[0], newline='', encoding="utf-8") as ftemplate:
-			for i, row_raw in enumerate(ftemplate.readlines()):
-				row = next(csv.reader([row_raw], delimiter=",", quotechar='"'))
-				if i == 0 or row[0].startswith("#"):
-					# Preserve header and comments
-					fclean.write(row_raw.replace("\r",""))
-					continue
-				origin = int(row[0], 16)
-				if origin in new_strings:
-					ns = new_strings[origin]
-					row[1] = ns[1] # update origin_length just in case
-					row[2] = csv_quote(ns[0]) # update text_jp
-					row[3] = csv_quote(row[3]) # requote text_en because csv.reader unquoted
-					fclean.write(",".join(row)+"\n")
-					rewritten += 1
-				else:
-					print(f"Warning: string at {template_row[0]} is missing from new string list, omitted")
-		print(f"Rewrote {rewritten} clean strings to {fclean.name}")
-
 def handle_command():
-	commands = {"extract":cmd_extract, "regions":cmd_regions, "inject":cmd_inject, "reclean":cmd_reclean}
+	commands = {"extract":cmd_extract, "regions":cmd_regions, "inject":cmd_inject}
+	prog = sys.argv[0]
 	if len(sys.argv) > 1:
 		command = sys.argv[1].lower()
 		args = sys.argv[2:]
 		if command in commands:
-			commands[command](args)
+			commands[command](args, f"{prog} {command}")
 			return
-	print("Usage:", sys.argv[0], "<"+("|".join(commands.keys()))+">")
+	print(f"Usage: {prog} <{'|'.join(commands.keys())}> ...")
 
 if __name__ == "__main__":
 	handle_command()
