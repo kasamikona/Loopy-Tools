@@ -363,29 +363,28 @@ def cmd_inject(args, cmdline):
 	
 	newdata = bytearray(data)
 	
-	strings = {} # origin: (text_data, need_len, [pointers])
+	strings = {} # origin -> (text_data, need_len, [pointers])
 	string_data_needed = 0
+	pointers_to_change = 0
 	with open(path_strings_in, newline="", encoding="utf-8") as f:
 		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
 		for row in cr:
 			origin = int(row["origin"], 16)
 			text = row["text_translated"] or row["text_original"]
+			pointers = []
+			for p in row["pointers"].split(","):
+				pn = int(p, 16)
+				if pn in valid_range:
+					pointers.append(pn)
+				else:
+					print(f"Warning: pointer \"{p}\" for string at 0x{origin:08X} invalid or out of range.")
 			text_data = string_unescape(text, remapcc).encode("shift-jis") + b"\x00"
 			need_len = len(text_data)
 			string_data_needed += need_len
-			strings[origin] = (text_data, need_len, [])
+			pointers_to_change += len(pointers)
+			strings[origin] = (text_data, need_len, pointers)
 	
-	# Gather all valid rom pointers
-	# (ptrloc, strloc, strdata)
-	pointers_in_rom = gather_strings(data, VALID_POINTERS)
-	print(f"Found {len(pointers_in_rom):d} pointers in ROM")
-	pointers_to_change = 0
-	
-	for r in pointers_in_rom:
-		if r[1] in strings:
-			strings[r[1]][2].append(r[0])
-			pointers_to_change += 1
-	print(f"Of which {pointers_to_change:d} will be updated")
+	print(f"Found {pointers_to_change:d} pointers to update")
 	
 	regions = []
 	available_bytes = 0
