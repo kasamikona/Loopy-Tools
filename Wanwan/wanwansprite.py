@@ -1,9 +1,11 @@
 import sys, os, struct
 from PIL import Image
+import wanwan_data
 
 ROM_BASE = 0x0E000000
 RESOURCES = 0x0E070000
-MAX_LENGTH = 65536
+MAX_COMPRESSED_LENGTH = 1<<16
+MAX_DECOMPRESSED_LENGTH = 1<<16
 
 def parsenum(x):
 	x = x.lower()
@@ -27,15 +29,33 @@ def col2rgb(c):
 def rgbhex(rgb):
 	return f"#{rgb[0]&255:02X}{rgb[1]&255:02X}{rgb[2]&255:02X}"
 
+def check_files(exist, noexist):
+	for f in exist:
+		if not os.path.exists(f):
+			print("Can't open file: "+f)
+			return False
+	for f in noexist:
+		if os.path.exists(f):
+			print("File already exists: "+f)
+			return False
+	return True
+
+def parse_boolean(s):
+	return s.lower() in ['true', '1', 't', 'y', 'yes']
 
 def cmd_extract(args):
 	if len(args) < 4 or len(args) > 5:
 		print("Usage:", sys.argv[0], sys.argv[1], "<rom.bin> <sprite resource> <palette resource> <output.png> [transparent true/false]")
 		return
 	
+	path_rom_in = args[0]
+	path_image_out = args[3]
+	if not check_files(exist=[path_rom_in], noexist=[path_image_out]):
+		return
+	
 	use_transp = False
 	if len(args) >= 5:
-		use_transp = args[4].lower() in ['true', '1', 't', 'y', 'yes', 'transp', 'transparent']
+		use_transp = parse_boolean(args[4])
 	print("Transparency: " + ("YES" if use_transp else "NO"))
 	
 	res_sprite = parsenum(args[1])
@@ -71,7 +91,7 @@ def cmd_extract(args):
 		print("Palette:")
 		for i in range(palette_length):
 			crgb = col2rgb(palette_data[i])
-			chex = rgbhex(crgb) if i > 0 else "Transp."
+			chex = rgbhex(crgb) if (i > 0 or not use_transp) else "Transp."
 			if i&3 == 3 or i == palette_length-1:
 				print(chex)
 			else:
@@ -86,74 +106,35 @@ def cmd_extract(args):
 					break
 		
 		rom.seek(res_sprite_ptr-ROM_BASE)
-		decompressed = bytearray()
-		
-		bitcounter = 1
-		modebits = 0
-		copyoffset = 0
-		copycount = 0
-		try:
-			while True:
-				if len(decompressed) >= MAX_LENGTH:
-					print("Decompressed data exceeded max length")
-					return
-				while True:
-					bitcounter -= 1
-					if bitcounter == 0:
-						bitcounter = 8
-						modebits = rom.read(1)[0]
-					mode = modebits&1
-					modebits >>= 1
-					if mode == 0:
-						break
-					decompressed += rom.read(1)
-				bitcounter -= 1
-				if bitcounter == 0:
-					bitcounter = 8
-					modebits = rom.read(1)[0]
-				mode = modebits&1
-				modebits >>= 1
-				if mode == 1:
-					shortcopy = rom.read(1)[0]
-					copyoffset = (shortcopy&63)-64
-					copycount = (shortcopy>>6)&3
-				else:
-					longcopy = struct.unpack(">H",rom.read(2))[0]
-					copyoffset = (longcopy&4095)-4096
-					copycount = (longcopy>>12)&15
-					if copycount == 0:
-						copycount = rom.read(1)[0]
-						if copycount == 0:
-							break
-				for i in range(copycount+2):
-					decompressed.append(decompressed[copyoffset:][0])
-		except IndexError:
-			print("Decompression error")
-			return
-		
-		print(f"Decompressed {len(decompressed)} bytes")
-		img_width, img_height = decompressed[:2]
-		if img_width == 0:
-			img_width = 256
-		if img_height == 0:
-			img_height = 256
-		decompressed = decompressed[2:]
-		print(f"Image dimensions {img_width}x{img_height}")
-		if len(decompressed) != img_width*img_height:
-			print("Data size mismatch")
-			return
-		
-		img = Image.new("RGBA", (img_width, img_height), color = (0,0,0,0))
-		pix = img.load()
-		for x in range(img_width):
-			for y in range(img_height):
-				ci = decompressed[y*img_width+x]
-				if ci >= palette_length:
-					print(f"Invalid color {ci} at {x},{y}")
-					continue
-				pix[x,y] = palette_rgba[ci]
-		print(f"Saving to {args[3]}")
-		img.save(args[3])
+		compressed = rom.read(MAX_COMPRESSED_LENGTH)
+	
+	decompressed = wanwan_data.decompress(compressed, MAX_DECOMPRESSED_LENGTH)
+	if not decompressed:
+		return
+	
+	print(f"Decompressed {len(decompressed)} bytes")
+	img_width, img_height = decompressed[:2]
+	if img_width == 0:
+		img_width = 256
+	if img_height == 0:
+		img_height = 256
+	decompressed = decompressed[2:]
+	print(f"Image dimensions {img_width}x{img_height}")
+	if len(decompressed) != img_width*img_height:
+		print("Data size mismatch")
+		return
+	
+	img = Image.new("RGBA", (img_width, img_height), color = (0,0,0,0))
+	pix = img.load()
+	for x in range(img_width):
+		for y in range(img_height):
+			ci = decompressed[y*img_width+x]
+			if ci >= palette_length:
+				print(f"Invalid color {ci} at {x},{y}")
+				continue
+			pix[x,y] = palette_rgba[ci]
+	print(f"Saving to {args[3]}")
+	img.save(args[3])
 
 def main():
 	commands = {"extract":cmd_extract}
