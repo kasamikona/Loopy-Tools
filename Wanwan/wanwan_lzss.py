@@ -3,8 +3,6 @@ import struct
 
 # Compressor & decompressor implementation by Kasami (2024)
 # For modified LZSS used in "Wanwan Aijou Monogatari" by Alfa System (1995)
-# This compressor uses a naive longest-match search so is not fast,
-# but it is only expected to take up to a few KB per run.
 
 def compress(input_data):
 	# input_data is bytes or bytearray input
