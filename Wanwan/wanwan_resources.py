@@ -1,6 +1,6 @@
 import sys, os, struct
 from PIL import Image
-from wanwan_data import decompress
+from wanwan_lzss import decompress
 
 ROM_BASE = 0x0E000000
 RESOURCES_COUNT_PTR = 0x0E070000
