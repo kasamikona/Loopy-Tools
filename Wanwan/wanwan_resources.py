@@ -18,8 +18,16 @@ def parsenum(x):
 		else:
 			a = int(x, 10)
 		return a
-	except ValueError:
-		return None
+	except ValueError as e:
+		raise e
+
+def parsebool(s):
+	s = s.lower()
+	if s in ["true", "1", "t", "y", "yes"]:
+		return True
+	if s in ["false", "0", "f", "n", "no"]:
+		return False
+	raise ValueError
 
 def col2rgb(c):
 	r = (c>>10)&31
@@ -74,9 +82,6 @@ def check_files(exist, noexist):
 			return False
 	return True
 
-def parse_boolean(s):
-	return s.lower() in ['true', '1', 't', 'y', 'yes']
-
 def get_resource(rom, index, size=None):
 	# Get total resource count and verify index
 	rom.seek(RESOURCES_COUNT_PTR - ROM_BASE)
@@ -115,80 +120,80 @@ def get_resource(rom, index, size=None):
 
 def cmd_extract(args):
 	# Parse and verify command arguments
-	path_rom_in = args.path_rom_in
-	path_res_out = args.path_res_out
-	if not check_files(exist=[path_rom_in], noexist=[path_res_out]):
+	rom_in = args.path_rom_in
+	res_out = args.path_res_out
+	rindex = args.res_index
+	rsize = args.res_size
+	comp = args.compressed
+	if not check_files(exist=[rom_in], noexist=[res_out]):
 		return
-	res_index = parsenum(args.res_index)
-	if not res_index:
-		print("Invalid index")
-		return
-	res_size = None
-	if args.res_size != None:
-		res_size = parsenum(args.res_size)
-		if not res_size or res_size <= 0:
+	if rsize != None:
+		if rsize <= 0:
 			print("Invalid size")
 			return
 	
 	# Read input data
-	with open(path_rom_in, "rb") as rom:
-		res_data = get_resource(rom, res_index, res_size)
+	with open(rom_in, "rb") as rom:
+		res_data = get_resource(rom, rindex, rsize)
 	
 	# Decompress if requested
-	if args.compressed:
+	if comp:
 		res_data = decompress(res_data)
 		if not res_data:
 			return
 		print(f"Decompressed {len(res_data)} bytes")
 	
 	# Write output data
-	with open(path_res_out, "wb") as res:
+	with open(res_out, "wb") as res:
 		res.write(res_data)
-		print(f"Saved resource {res_index} to {path_res_out}")
+		print(f"Saved resource {rindex} to {res_out}")
 
-def cmd_extract_image(args):
+def cmd_decode_image(args):
 	# Parse and verify command arguments
-	path_rom_in = args.path_rom_in
-	path_image_out = args.path_image_out
-	if not check_files(exist=[path_rom_in], noexist=[path_image_out]):
+	res_im_in = args.path_res_im_in
+	res_pal_in = args.path_res_pal_in
+	im_out = args.path_image_out
+	transp = args.transparent
+	comp = args.compressed
+	if not check_files(exist=[res_im_in, res_pal_in], noexist=[im_out]):
 		return
-	use_transp = args.transparent
-	print("Transparency: " + ("YES" if use_transp else "NO"))
-	res_image = parsenum(args.res_image)
-	res_palette = parsenum(args.res_palette)
-	if res_image == None or res_palette == None:
-		print("Invalid resource number")
-		return
+	print("Transparent: " + ("YES" if transp else "NO"))
+	print("Compressed: " + ("YES" if comp else "NO"))
 	
 	# Read input data
-	with open(path_rom_in, "rb") as rom:
-		data_image = get_resource(rom, res_image)
-		data_palette = get_resource(rom, res_palette)
-		if (not data_image) or (not data_palette):
-			return
+	with open(res_im_in, "rb") as f:
+		data_image = f.read()
+	with open(res_pal_in, "rb") as f:
+		data_palette = f.read()
 	
 	# Load palette
-	palette = load_palette(data_palette, use_transp, do_print=True)
+	palette = load_palette(data_palette, transp, do_print=True)
 	if not palette:
 		return
 	palette_rgba, palette_size = palette
 	
-	# Decompress image data
-	data_image = decompress(data_image)
-	if not data_image:
-		return
-	print(f"Decompressed {len(data_image)} bytes")
+	# Decompress image data if necessary
+	if comp:
+		data_image = decompress(data_image)
+		if data_image == None:
+			return
+		print(f"Decompressed {len(data_image)} bytes")
+	#comp_uncomp_other = "uncompressed" if comp else "compressed"
+	comp_uncomp_other = "compressed = false" if comp else "compressed = true"
 	
 	# Load and verify image dimensions
-	img_width, img_height = data_image[:2]
-	data_image = data_image[2:]
-	if img_width == 0:
-		img_width = 256
-	if img_height == 0:
-		img_height = 256
+	header_fmt = "BB"
+	header_size = struct.calcsize(header_fmt)
+	if len(data_image) < header_size:
+		print(f"Data too short, try {comp_uncomp_other}.")
+		return
+	img_width, img_height = struct.unpack(header_fmt, data_image[:header_size])
+	data_image = data_image[header_size:]
+	img_width = img_width or 256
+	img_height = img_height or 256
 	print(f"Image dimensions {img_width}x{img_height}")
 	if len(data_image) != img_width*img_height:
-		print("Data size mismatch")
+		print(f"Data size mismatch, try {comp_uncomp_other}.")
 		return
 	
 	# Write output image
@@ -201,49 +206,55 @@ def cmd_extract_image(args):
 				print(f"Invalid color {ci} at {x},{y}")
 				continue
 			pix[x,y] = palette_rgba[ci]
-	print(f"Saving to {path_image_out}")
-	img.save(path_image_out)
+	print(f"Saving to {im_out}")
+	img.save(im_out)
 
-def cmd_extract_tiles(args):
+def cmd_decode_tiles(args):
 	# Parse and verify command arguments
-	path_rom_in = args.path_rom_in
-	path_image_out = args.path_image_out
-	if not check_files(exist=[path_rom_in], noexist=[path_image_out]):
+	res_ts_in = args.path_res_tiles_in
+	res_pal_in = args.path_res_pal_in
+	im_out = args.path_image_out
+	transp = args.transparent
+	comp = args.compressed
+	if not check_files(exist=[res_ts_in, res_pal_in], noexist=[im_out]):
 		return
-	use_transp = True
-	res_tiles = parsenum(args.res_tiles)
-	res_palette = parsenum(args.res_palette)
-	if (not res_tiles) or (not res_palette):
-		print("Invalid resource number")
-		return
+	print("Transparent: " + ("YES" if transp else "NO"))
+	print("Compressed: " + ("YES" if comp else "NO"))
 	
 	# Read input data
-	with open(path_rom_in, "rb") as rom:
-		data_tiles = get_resource(rom, res_tiles)
-		data_palette = get_resource(rom, res_palette)
-		if (not data_tiles) or (not data_palette):
-			return
+	with open(res_ts_in, "rb") as f:
+		data_tiles = f.read()
+	with open(res_pal_in, "rb") as f:
+		data_palette = f.read()
 	
 	# Load palette
-	palette = load_palette(data_palette, use_transp, do_print=True)
+	palette = load_palette(data_palette, transp, do_print=True)
 	if not palette:
 		return
 	palette_rgba, palette_size = palette
 	
-	# Decompress tilesheet data
-	data_tiles = decompress(data_tiles)
-	if not data_tiles:
-		return
-	print(f"Decompressed {len(data_tiles)} bytes")
+	# Decompress tilesheet data if necessary
+	if comp:
+		data_tiles = decompress(data_tiles)
+		if data_tiles == None:
+			return
+		print(f"Decompressed {len(data_tiles)} bytes")
+	#comp_uncomp_other = "uncompressed" if comp else "compressed"
+	comp_uncomp_other = "compressed = false" if comp else "compressed = true"
 	
 	# Load and verify tile count
-	num_tiles = struct.unpack(">H", data_tiles[:2])[0]
-	data_tiles = data_tiles[2:]
+	header_fmt = ">H"
+	header_size = struct.calcsize(header_fmt)
+	if len(data_tiles) < header_size:
+		print(f"Data too short, try {comp_uncomp_other}.")
+		return
+	num_tiles = struct.unpack(header_fmt, data_tiles[:header_size])[0]
+	data_tiles = data_tiles[header_size:]
 	if num_tiles == 0:
 		print("No tiles")
 		return
 	if len(data_tiles) != num_tiles*32:
-		print("Data size mismatch")
+		print(f"Data size mismatch, try {comp_uncomp_other}.")
 		return
 	
 	# Compute output image dimensions
@@ -267,15 +278,15 @@ def cmd_extract_tiles(args):
 				ix = (t&7)*8 + tx
 				iy = (t//8)*8 + ty
 				pix[ix,iy] = palette_rgba[ci]
-	print(f"Saving to {path_image_out}")
-	img.save(path_image_out)
+	print(f"Saving to {im_out}")
+	img.save(im_out)
 
 class ArgParserHelpOnError(argparse.ArgumentParser):
 	def error(self, message):
-		print(f"error: {message}")
-		print()
 		self.print_help()
-		sys.exit(2)
+		print()
+		print(f"ERROR: {message}")
+		#sys.exit(2)
 
 def main(args):
 	progname = os.path.basename(args.pop(0))
@@ -289,32 +300,33 @@ def main(args):
 	afunc = cmd_extract
 	parser_extract = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
 	parser_extract.add_argument("path_rom_in", metavar="rom.bin", help="Source ROM input path")
-	parser_extract.add_argument("res_index", metavar="res_index", help="Resource number to extract")
+	parser_extract.add_argument("res_index", metavar="res_index", help="Resource number to extract", type=parsenum)
 	parser_extract.add_argument("path_res_out", metavar="output.bin", help="Resource output path")
-	parser_extract.add_argument("-s", "--size", metavar="res_size", dest="res_size", help="Size of the source data")
-	parser_extract.add_argument("-z", "--lzss", help="Use LZSS decompression", dest="compressed", action='store_true')
+	parser_extract.add_argument("-s", "--size", metavar="res_size", dest="res_size", help="Size of the source data", type=parsenum)
+	parser_extract.add_argument("-c", "--compressed", metavar="true/false", help="Decompress resource on extraction (default false)", type=parsebool, default=False)
 	parser_extract.set_defaults(action=afunc)
 	
-	aname = "extract-image"
-	ahelp = "Extract an 8bpp image"
-	afunc = cmd_extract_image
-	parser_ext_image = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
-	parser_ext_image.add_argument("path_rom_in", metavar="rom.bin", help="Source ROM input path")
-	parser_ext_image.add_argument("res_image", metavar="res_image", help="Resource number of image")
-	parser_ext_image.add_argument("res_palette", metavar="res_palette", help="Resource number of palette")
-	parser_ext_image.add_argument("path_image_out", metavar="output.png", help="Image output path")
-	parser_ext_image.add_argument("-t", "--transparent", help="Treat color 0 as transparent", dest="transparent", action='store_true')
-	parser_ext_image.set_defaults(action=afunc)
+	aname = "decode-image"
+	ahelp = "Decode an 8bpp image"
+	afunc = cmd_decode_image
+	parser_dec_image = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_dec_image.add_argument("path_res_im_in", metavar="res_image.bin", help="Image resource file path")
+	parser_dec_image.add_argument("path_res_pal_in", metavar="res_palette.bin", help="Palette resource file path")
+	parser_dec_image.add_argument("path_image_out", metavar="output.png", help="Image output path")
+	parser_dec_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
+	parser_dec_image.add_argument("-c", "--compressed", metavar="true/false", help="Decompress image resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_dec_image.set_defaults(action=afunc)
 	
-	aname = "extract-tiles"
-	ahelp = "Extract a 4bpp tile sheet"
-	afunc = cmd_extract_tiles
-	parser_ext_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
-	parser_ext_tiles.add_argument("path_rom_in", metavar="rom.bin", help="Source ROM input path")
-	parser_ext_tiles.add_argument("res_tiles", metavar="res_tiles", help="Resource number of tile sheet")
-	parser_ext_tiles.add_argument("res_palette", metavar="res_palette", help="Resource number of palette")
-	parser_ext_tiles.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
-	parser_ext_tiles.set_defaults(action=afunc)
+	aname = "decode-tiles"
+	ahelp = "Decode a 4bpp tile sheet"
+	afunc = cmd_decode_tiles
+	parser_dec_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_dec_tiles.add_argument("path_res_tiles_in", metavar="res_tiles", help="Tilesheet resource file path (decompressed)")
+	parser_dec_tiles.add_argument("path_res_pal_in", metavar="res_palette", help="Palette resource file path")
+	parser_dec_tiles.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
+	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
+	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_dec_tiles.set_defaults(action=afunc)
 	
 	parsed_args = parser.parse_args(args)
 	parsed_args.action(parsed_args)
