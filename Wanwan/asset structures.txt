@@ -1,0 +1,30 @@
+Compression is a variant of LZ77/LZSS. See extractor implementation.
+
+
+Palette:
+(Uncompressed)
+- u16 numColors
+- u16[numColors] colors
+
+BitmapImage8bpp:
+(Compressed, associated with a Palette)
+- u8 width (0 means 256)
+- u8 height (0 means 256)
+- u8[width*height] imageData
+
+MetaSprite:
+(Uncompressed, associated with a TileSheet4bpp and Palette)
+- u16 unknown1 (usually 1, anything nonzero works)
+- u16 dataOffset (always 4, data immediately follows)
+- u8 numSprites
+- for numSprites entries:
+  - u8 tileIndex (relative to sheet?)
+  - s8 offsetX (relative to metasprite position)
+  - s8 offsetY (relative to metasprite position)
+  - u8 attributes (OAM flipx/flipy/size, may include subpal and position MSBs)
+
+TileSheet4bpp:
+(Compressed)
+- u16 numTiles
+- for numTiles entries:
+  - u8[32] tileData
