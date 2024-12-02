@@ -157,8 +157,8 @@ def decompress(input_data, debug=False):
 							print(f"<l/{-copy_offset},{copy_count+2}> ", end="")
 					for i in range(copy_count+2):
 						output_data.append(output_data[copy_offset:][0])
-		except IndexError:
-			print("Decompression error")
+		except (IndexError, struct.error):
+			print("Decompression error. Input is corrupted, truncated, or not compressed.")
 			return None
 	return output_data
 
