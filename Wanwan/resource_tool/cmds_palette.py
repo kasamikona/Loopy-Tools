@@ -1,5 +1,5 @@
 from PIL import Image
-from util import check_files, load_palette
+from util import check_files, load_palette, palette_to_rgba, print_palette_rgba
 
 def cmd_preview_palette(args):
 	# Parse and verify command arguments
@@ -8,13 +8,17 @@ def cmd_preview_palette(args):
 	if not check_files(exist=[pal_in], noexist=[im_out]):
 		return
 	
-	# Load palette
+	# Read input data
 	with open(pal_in, "rb") as f:
 		data_palette = f.read()
-	palette = load_palette(data_palette, use_transp=False, do_print=True)
+	
+	# Load palette
+	palette = load_palette(data_palette)
 	if not palette:
 		return
-	palette_rgba, palette_size = palette
+	palette_rgba = palette_to_rgba(palette, first_transparent=False)
+	palette_size = len(palette)
+	print_palette_rgba(palette_rgba)
 	
 	# Compute output image dimensions
 	img_width = 16

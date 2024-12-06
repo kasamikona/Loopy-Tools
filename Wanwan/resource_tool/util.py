@@ -31,38 +31,53 @@ def col2rgb(c):
 def rgbhex(rgb):
 	return f"#{rgb[0]&255:02X}{rgb[1]&255:02X}{rgb[2]&255:02X}"
 
-def load_palette(palette_data, use_transp, do_print=False):
+def load_palette(palette_data):
 	if len(palette_data) < 2:
-		if do_print:
-			print("Palette data incomplete")
+		print("Palette data incomplete")
 		return None
 	palette_size = struct.unpack(">H", palette_data[:2])[0]
 	palette_data = palette_data[2:]
 	if palette_size > len(palette_data):
-		if do_print:
-			print("Palette data incomplete")
+		print("Palette data incomplete")
 		return None
-	palette_values = struct.unpack(f">{palette_size}H", palette_data[:palette_size*2])
-	palette_rgba = [0]*palette_size
-	if do_print:
-		print("Palette:")
+	palette = struct.unpack(f">{palette_size}H", palette_data[:palette_size*2])
+	return palette
+
+def palette_to_rgba(palette, first_transparent=True):
+	palette_size = len(palette)
+	palette_rgba = [None]*palette_size
 	for i in range(palette_size):
-		crgb = col2rgb(palette_values[i])
-		if do_print:
-			chex = rgbhex(crgb) if (i > 0 or not use_transp) else "Transp."
-			if i&3 == 3 or i == palette_size-1:
-				print(chex)
-			else:
-				print(chex.ljust(12), end="")
-		crgba = (*crgb, 0 if (i == 0 and use_transp) else 255)
+		crgb = col2rgb(palette[i])
+		crgba = (*crgb, 0 if (i == 0 and first_transparent) else 255)
 		palette_rgba[i] = crgba
-	if do_print:
+	return palette_rgba
+
+def print_palette_rgba(palette_rgba, warn_duplicates=True):
+	palette_size = len(palette_rgba)
+	print("Palette:")
+	
+	# Print color hex values
+	for i in range(palette_size):
+		crgba = palette_rgba[i]
+		chex = rgbhex(crgba[:3]) if (crgba[3] > 0) else "Transp."
+		if i&3 == 3 or i == palette_size-1:
+			print(chex)
+		else:
+			print(chex.ljust(12), end="")
+	
+	# Warn for any duplicates
+	if warn_duplicates:
+		dupes = [[] for i in range(palette_size)]
 		for i in range(palette_size):
 			for j in range(0, i):
-				if palette_values[i] == palette_values[j]:
-					print(f"Warning: color {i} is a duplicate of {j}")
-					break
-	return (palette_rgba, palette_size)
+				if palette_rgba[i] == palette_rgba[j]:
+					dupes[j].append(i)
+		for i in range(palette_size):
+			if len(dupes[i]) > 0:
+				dupelist = ", ".join(map(str, dupes[i]))
+				print(f"Warning: color {i} has duplicates at: {dupelist}")
+			for j in dupes[i]:
+				dupes[j] = []
 
 def check_files(exist, noexist):
 	for f in exist:

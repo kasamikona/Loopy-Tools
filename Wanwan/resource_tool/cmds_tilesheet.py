@@ -1,6 +1,6 @@
 import struct
 from PIL import Image
-from util import check_files, load_palette
+from util import check_files, load_palette, palette_to_rgba, print_palette_rgba
 from lzss_ww import decompress
 
 def cmd_decode_tilesheet(args):
@@ -22,10 +22,12 @@ def cmd_decode_tilesheet(args):
 		data_palette = f.read()
 	
 	# Load palette
-	palette = load_palette(data_palette, transp, do_print=True)
+	palette = load_palette(data_palette)
 	if not palette:
 		return
-	palette_rgba, palette_size = palette
+	palette_rgba = palette_to_rgba(palette, first_transparent=transp)
+	palette_size = len(palette)
+	print_palette_rgba(palette_rgba)
 	
 	# Decompress tilesheet data if necessary
 	if comp:
