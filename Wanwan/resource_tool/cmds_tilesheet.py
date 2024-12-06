@@ -47,7 +47,9 @@ def cmd_decode_tilesheet(args):
 	if num_tiles == 0:
 		print("No tiles")
 		return
-	if len(data_tiles) != num_tiles*32:
+	expect_size = num_tiles*32
+	# Some resources are 1 byte too long for some reason
+	if len(data_tiles) not in [expect_size, expect_size+1]:
 		print(f"Data size mismatch, try {comp_uncomp_other}.")
 		return
 	

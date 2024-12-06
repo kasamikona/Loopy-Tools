@@ -60,6 +60,8 @@ def cmd_extract(args):
 	# Read input data
 	with open(rom_in, "rb") as rom:
 		res_data = _get_resource(rom, rindex, rsize)
+	if not res_data:
+		return
 	
 	# Decompress if requested
 	if comp:

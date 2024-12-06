@@ -47,7 +47,9 @@ def cmd_decode_image(args):
 	img_width = img_width or 256
 	img_height = img_height or 256
 	print(f"Image dimensions {img_width}x{img_height}")
-	if len(data_image) != img_width*img_height:
+	expect_size = img_width*img_height
+	# Some resources are 1 byte too long for some reason
+	if len(data_image) not in [expect_size, expect_size+1]:
 		print(f"Data size mismatch, try {comp_uncomp_other}.")
 		return
 	
