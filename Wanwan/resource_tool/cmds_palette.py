@@ -1,7 +1,7 @@
 from PIL import Image
-from util import check_files, load_palette, palette_to_rgba, print_palette_rgba
+from util import check_files, make_dirs_for_file, load_palette, palette_to_rgba, print_palette_rgba
 
-def cmd_preview_palette(args):
+def cmd_decode_palette(args):
 	# Parse and verify command arguments
 	pal_in = args.path_pal_in
 	im_out = args.path_image_out
@@ -33,4 +33,5 @@ def cmd_preview_palette(args):
 		iy = ci//16
 		pix[ix,iy] = palette_rgba[ci]
 	print(f"Saving to {im_out}")
+	make_dirs_for_file(im_out)
 	img.save(im_out)

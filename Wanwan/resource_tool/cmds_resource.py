@@ -1,5 +1,5 @@
 import struct
-from util import check_files
+from util import check_files, make_dirs_for_file
 from lzss_ww import decompress
 
 ROM_BASE = 0x0E000000
@@ -71,6 +71,7 @@ def cmd_extract(args):
 		print(f"Decompressed {len(res_data)} bytes")
 	
 	# Write output data
+	make_dirs_for_file(res_out)
 	with open(res_out, "wb") as res:
 		res.write(res_data)
 		print(f"Saved resource {rindex} to {res_out}")

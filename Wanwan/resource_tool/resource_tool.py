@@ -44,7 +44,7 @@ def main(args):
 	parser_dec_image.add_argument("-c", "--compressed", metavar="true/false", help="Decompress image resource on load (default true)", dest="compressed", type=parsebool, default=True)
 	
 	aname = "decode-tiles"
-	ahelp = "Decode a 4bpp tile sheet"
+	ahelp = "Decode a 4bpp tilesheet to a sheet image"
 	afunc = cmd_decode_tilesheet
 	parser_dec_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
 	parser_dec_tiles.set_defaults(action=afunc)
@@ -54,13 +54,13 @@ def main(args):
 	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
 
-	aname = "view-palette"
-	ahelp = "Convert a palette to a preview image"
-	afunc = cmd_preview_palette
-	parser_view_pal = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
-	parser_view_pal.set_defaults(action=afunc)
-	parser_view_pal.add_argument("path_pal_in", metavar="res_palette.bin", help="Palette resource file path")
-	parser_view_pal.add_argument("path_image_out", metavar="output.png", help="Preview image output path")
+	aname = "decode-palette"
+	ahelp = "Decode a palette to a grid image"
+	afunc = cmd_decode_palette
+	parser_dec_pal = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_dec_pal.set_defaults(action=afunc)
+	parser_dec_pal.add_argument("path_pal_in", metavar="res_palette.bin", help="Palette resource file path")
+	parser_dec_pal.add_argument("path_image_out", metavar="output.png", help="Palette grid image output path")
 	
 	parsed_args = parser.parse_args(args)
 	parsed_args.action(parsed_args)

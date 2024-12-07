@@ -89,3 +89,8 @@ def check_files(exist, noexist):
 			print("File already exists: "+f)
 			return False
 	return True
+
+def make_dirs_for_file(filepath):
+	filepath = os.path.abspath(filepath)
+	dirpath = os.path.dirname(filepath)
+	os.makedirs(dirpath, exist_ok=True)

@@ -1,6 +1,6 @@
 import struct
 from PIL import Image
-from util import check_files, load_palette, palette_to_rgba, print_palette_rgba
+from util import check_files, make_dirs_for_file, load_palette, palette_to_rgba, print_palette_rgba
 from lzss_ww import decompress
 
 def cmd_decode_image(args):
@@ -27,7 +27,7 @@ def cmd_decode_image(args):
 		return
 	palette_rgba = palette_to_rgba(palette, first_transparent=transp)
 	palette_size = len(palette)
-	print_palette_rgba(palette_rgba)
+	#print_palette_rgba(palette_rgba)
 	
 	# Decompress image data if necessary
 	if comp:
@@ -66,4 +66,5 @@ def cmd_decode_image(args):
 				continue
 			pix[x,y] = palette_rgba[ci]
 	print(f"Saving to {im_out}")
+	make_dirs_for_file(im_out)
 	img.save(im_out)
