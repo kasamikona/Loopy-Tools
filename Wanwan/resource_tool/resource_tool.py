@@ -53,6 +53,7 @@ def main(args):
 	parser_dec_tiles.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
 	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_dec_tiles.add_argument("-s", "--subpalette", metavar="subpal", help="Subpalette index (default 0)", dest="subpalette", type=parsenum, default=0)
 
 	aname = "decode-palette"
 	ahelp = "Decode a palette to a grid image"

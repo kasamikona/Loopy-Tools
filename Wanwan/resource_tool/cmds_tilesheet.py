@@ -10,10 +10,12 @@ def cmd_decode_tilesheet(args):
 	im_out = args.path_image_out
 	transp = args.transparent
 	comp = args.compressed
+	subpal = args.subpalette
 	if not check_files(exist=[res_ts_in, res_pal_in], noexist=[im_out]):
 		return
 	print("Transparent: " + ("YES" if transp else "NO"))
 	print("Compressed: " + ("YES" if comp else "NO"))
+	print(f"Subpalette: {subpal}")
 	
 	# Read input data
 	with open(res_ts_in, "rb") as f:
@@ -25,8 +27,19 @@ def cmd_decode_tilesheet(args):
 	palette = load_palette(data_palette)
 	if not palette:
 		return
-	palette_rgba = palette_to_rgba(palette, first_transparent=transp)
 	palette_size = len(palette)
+	
+	# Get subpalette from palette
+	num_subpals = palette_size // 16
+	print(f"Available subpalettes: {num_subpals}")
+	if subpal < 0 or subpal >= num_subpals:
+		print(f"Invalid subpalette {subpal}")
+		return
+	palette = palette[subpal*16:][:16]
+	palette_size = 16
+
+	# Convert palette to RGBA
+	palette_rgba = palette_to_rgba(palette, first_transparent=transp)
 	#print_palette_rgba(palette_rgba)
 	
 	# Decompress tilesheet data if necessary
