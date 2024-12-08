@@ -6,6 +6,7 @@ from cmds_resource import *
 from cmds_image import *
 from cmds_tilesheet import *
 from cmds_palette import *
+from cmds_metasprite import *
 
 class ArgParserHelpOnError(argparse.ArgumentParser):
 	def error(self, message):
@@ -62,6 +63,14 @@ def main(args):
 	parser_dec_pal.set_defaults(action=afunc)
 	parser_dec_pal.add_argument("path_pal_in", metavar="res_palette.bin", help="Palette resource file path")
 	parser_dec_pal.add_argument("path_image_out", metavar="output.png", help="Palette grid image output path")
+	
+	aname = "decode-metasprite"
+	ahelp = "Decode a metasprite to a text representation"
+	afunc = cmd_decode_metasprite
+	parser_dec_msp = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_dec_msp.set_defaults(action=afunc)
+	parser_dec_msp.add_argument("path_metasprite_in", metavar="res_metasprite.bin", help="Metasprite resource file path")
+	parser_dec_msp.add_argument("path_text_out", metavar="output.txt", help="Text output path")
 	
 	parsed_args = parser.parse_args(args)
 	parsed_args.action(parsed_args)
