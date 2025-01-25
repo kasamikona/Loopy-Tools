@@ -165,8 +165,7 @@ def change_suffix(s, change_from, change_to):
 
 def csv_decomment(csvfile):
 	for row in csvfile:
-		raw = row.split('#')[0].strip()
-		if raw: yield raw
+		if not row.strip().startswith("#"): yield row
 
 def check_files(exist, noexist):
 	for f in exist:
@@ -343,6 +342,7 @@ def cmd_inject(args, cmdline):
 	remapcc = False
 	if len(args) > 4:
 		remapcc = True
+		print("Using control code remapping")
 	
 	if not check_files(exist=[path_rom_in, path_strings_in, path_regions_in], noexist=[path_rom_out]):
 		return
@@ -366,7 +366,7 @@ def cmd_inject(args, cmdline):
 			for p in row["pointers"].split(";"):
 				pn = int(p, 16)
 				if pn in VALID_POINTERS:
-					pointers.append(pn)
+					pointers.append(pn-ROM_BASE)
 				else:
 					print(f"Warning: pointer \"{p}\" for string at 0x{origin:08X} invalid or out of range.")
 			text_data = string_unescape(text, remapcc).encode("shift-jis") + b"\x00"
