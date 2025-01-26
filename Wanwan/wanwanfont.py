@@ -3,8 +3,10 @@
 import sys, os, struct, glob, re
 from PIL import Image
 
-FONT_START = 0x100EA8
-FONT_END   = 0x1105D4
+ROM_BASE = 0x0E000000
+RESOURCES_TABLE_PTR = 0x0E070004
+FONT_RESOURCE_NUM = 646
+FONT_RESOURCE_LEN = 0xF72C
 NUM_PLANES = 20
 
 GLYPHS_PER_ROW = 16
@@ -64,6 +66,14 @@ def lastNum(s):
 gridpx = 13 if GRIDLINE else 12
 pxPerPlane = gridpx*((GLYPHS_PER_ROW+191)//GLYPHS_PER_ROW)
 
+def getFontStartEnd(fi):
+	fi.seek(RESOURCES_TABLE_PTR-ROM_BASE+(FONT_RESOURCE_NUM*4))
+	start = struct.unpack(">I", fi.read(4))[0]-ROM_BASE
+	end = start+FONT_RESOURCE_LEN
+	print(f"{RESOURCES_TABLE_PTR-ROM_BASE+(FONT_RESOURCE_NUM*4):08X}")
+	print(f"Font location in rom {start+ROM_BASE:08X}-{end+ROM_BASE:08X}")
+	return (start, end)
+
 def extract(romin, imgout):
 	imgNames = [fileNameSuffix(imgout, f"_{pn:02d}") for pn in range(NUM_PLANES)]
 	for imn in imgNames:
@@ -71,6 +81,7 @@ def extract(romin, imgout):
 			print(f"Output file {imn} already exists.")
 			return
 	with open(romin, "rb") as fi:
+		FONT_START, FONT_END = getFontStartEnd(fi)
 		fi.seek(FONT_START)
 		planeOffsets = struct.unpack(f"<{NUM_PLANES}H", fi.read(NUM_PLANES*2))
 		
@@ -92,7 +103,7 @@ def extract(romin, imgout):
 				ix = col*gridpx
 				iy = row*gridpx
 				unpackGlyph(gdata, pix, ix, iy)
-			print(f"Saving plane {pn} to {imgNames[pn]}")
+			print(f"Saving plane {pn} to {os.path.basename(imgNames[pn])}")
 			img.save(imgNames[pn])
 
 def inject(romin, imgin, romout):
@@ -121,9 +132,10 @@ def inject(romin, imgin, romout):
 	with open(romin, "rb") as fi:
 		with open(romout, "wb") as fo:
 			fo.write(fi.read())
+			
+			FONT_START, FONT_END = getFontStartEnd(fi)
 			fi.seek(FONT_START)
 			planeOffsets = struct.unpack(f"<{NUM_PLANES}H", fi.read(NUM_PLANES*2))
-			fo.seek(FONT_START)
 			
 			for pn in range(NUM_PLANES):
 				img = images[pn]
@@ -136,7 +148,7 @@ def inject(romin, imgin, romout):
 				if numGlyphs > 192:
 					numGlyphs = 192
 			
-				print(f"Injecting plane {pn}")
+				print(f"Injecting {os.path.basename(fimages[pn])} to plane {pn}")
 				for i in range(numGlyphs):
 					col = i % GLYPHS_PER_ROW
 					row = i // GLYPHS_PER_ROW
