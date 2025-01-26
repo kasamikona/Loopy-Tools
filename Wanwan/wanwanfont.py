@@ -75,7 +75,13 @@ def getFontStartEnd(fi):
 	return (start, end)
 
 def extract(romin, imgout):
-	imgNames = [fileNameSuffix(imgout, f"_{pn:02d}") for pn in range(NUM_PLANES)]
+	imgout = os.path.normpath(imgout)
+	nameparts = imgout.split("*")
+	if len(nameparts) != 2:
+		print("Output filename must contain one wildcard (*) for plane number")
+		return
+	nameout_prefix, nameout_suffix = nameparts
+	imgNames = [nameout_prefix+f"{pn:02d}"+nameout_suffix for pn in range(NUM_PLANES)]
 	for imn in imgNames:
 		if os.path.exists(imn):
 			print(f"Output file {imn} already exists.")
