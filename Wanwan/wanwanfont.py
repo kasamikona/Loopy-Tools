@@ -70,35 +70,45 @@ def getFontStartEnd(fi):
 	fi.seek(RESOURCES_TABLE_PTR-ROM_BASE+(FONT_RESOURCE_NUM*4))
 	start = struct.unpack(">I", fi.read(4))[0]-ROM_BASE
 	end = start+FONT_RESOURCE_LEN
-	print(f"{RESOURCES_TABLE_PTR-ROM_BASE+(FONT_RESOURCE_NUM*4):08X}")
-	print(f"Font location in rom {start+ROM_BASE:08X}-{end+ROM_BASE:08X}")
 	return (start, end)
 
-def extract(romin, imgout):
-	imgout = os.path.normpath(imgout)
-	nameparts = imgout.split("*")
-	if len(nameparts) != 2:
-		print("Output filename must contain one wildcard (*) for plane number")
-		return
-	nameout_prefix, nameout_suffix = nameparts
-	imgNames = [nameout_prefix+f"{pn:02d}"+nameout_suffix for pn in range(NUM_PLANES)]
-	for imn in imgNames:
-		if os.path.exists(imn):
-			print(f"Output file {imn} already exists.")
+def extract(romin, imgout, plane):
+	if plane.lower() == "all":
+		nameparts = imgout.split("*")
+		if len(nameparts) != 2:
+			print("Output filename must contain one wildcard (*) for plane number.")
+			print("Escape the wildcard (\\*) or use quotes to prevent command expansion.")
+			return
+		nameout_prefix, nameout_suffix = nameparts
+		planes = [(pn, os.path.normpath(nameout_prefix+f"{pn:02d}"+nameout_suffix)) for pn in range(NUM_PLANES)]
+	else:
+		try:
+			plane = int(plane)
+		except ValueError:
+			print("Invalid plane number")
+			return
+		if plane < 0 or plane >= NUM_PLANES:
+			print("Plane number out of range")
+			return
+		planes = [ (plane, os.path.normpath(imgout)) ]
+	for plane, img_path in planes:
+		if os.path.exists(img_path):
+			print(f"Output file {os.path.basename(img_path)} already exists.")
 			return
 	with open(romin, "rb") as fi:
 		FONT_START, FONT_END = getFontStartEnd(fi)
 		fi.seek(FONT_START)
 		planeOffsets = struct.unpack(f"<{NUM_PLANES}H", fi.read(NUM_PLANES*2))
 		
-		for pn in range(NUM_PLANES):
+		for plane, img_path in planes:
+			img_name = os.path.basename(img_path)
 			img = Image.new("L", (GLYPHS_PER_ROW*gridpx, pxPerPlane), color = COLOR_GRIDLINE)
 			pix = img.load()
-			fi.seek(FONT_START+planeOffsets[pn])
+			fi.seek(FONT_START+planeOffsets[plane])
 			
-			numGlyphs = (FONT_END - (FONT_START+planeOffsets[pn])) // 18
-			if pn < NUM_PLANES-1:
-				numGlyphs = (planeOffsets[pn+1] - planeOffsets[pn]) // 18
+			numGlyphs = (FONT_END - (FONT_START+planeOffsets[plane])) // 18
+			if plane < NUM_PLANES-1:
+				numGlyphs = (planeOffsets[plane+1] - planeOffsets[plane]) // 18
 			if numGlyphs > 192:
 				numGlyphs = 192
 			
@@ -109,27 +119,41 @@ def extract(romin, imgout):
 				ix = col*gridpx
 				iy = row*gridpx
 				unpackGlyph(gdata, pix, ix, iy)
-			print(f"Saving plane {pn} to {os.path.basename(imgNames[pn])}")
-			img.save(imgNames[pn])
+			print(f"Saving plane {plane} to {img_name}")
+			img.save(img_path)
 
-def inject(romin, imgin, romout):
-	fimages = glob.glob(imgin)
-	if len(fimages) != NUM_PLANES:
-		print(f"Wrong number of images, expected {NUM_PLANES} planes")
-		return
-	fimages = sorted(fimages, key=lastNum)
-	images = [None]*NUM_PLANES
-	for pn in range(NUM_PLANES):
+def inject(romin, imgin, romout, plane):
+	imgin = os.path.normpath(imgin)
+	if plane.lower() == "all":
+		imgin_glob = glob.glob(imgin)
+		if len(imgin_glob) != NUM_PLANES:
+			print(f"Wrong number of images, expected {NUM_PLANES} planes")
+			return
+		planes = enumerate(sorted(imgin_glob, key=lastNum))
+	else:
 		try:
-			img = Image.open(fimages[pn]).convert("L")
-			images[pn] = img
+			plane = int(plane)
+		except ValueError:
+			print("Invalid plane number")
+			return
+		if plane < 0 or plane >= NUM_PLANES:
+			print("Plane number out of range")
+			return
+		planes = [(plane, imgin)]
+	planes_tmp = []
+	for plane, img_path in planes:
+		img_name = os.path.basename(img_path)
+		try:
+			img = Image.open(img_path).convert("L")
 		except Exception:
-			print(f"{fimages[pn]} is not a valid image.")
+			print(f"{img_name} is not a valid image.")
 			return
 		if img.width != GLYPHS_PER_ROW*gridpx or img.height != pxPerPlane:
-			print(f"Wrong image dimensions in {fimages[pn]}, expected {GLYPHS_PER_ROW*gridpx} x {pxPerPlane}.")
+			print(f"Wrong image dimensions in {img_name}, expected {GLYPHS_PER_ROW*gridpx} x {pxPerPlane}.")
 			print("Check you are using the same script version.")
 			return
+		planes_tmp.append( (plane, img_path, img) )
+	planes = planes_tmp
 	
 	if os.path.exists(romout):
 		print(f"Output file {romout} already exists.")
@@ -143,18 +167,18 @@ def inject(romin, imgin, romout):
 			fi.seek(FONT_START)
 			planeOffsets = struct.unpack(f"<{NUM_PLANES}H", fi.read(NUM_PLANES*2))
 			
-			for pn in range(NUM_PLANES):
-				img = images[pn]
+			for plane, img_path, img in planes:
+				img_name = os.path.basename(img_path)
 				pix = img.load()
-				fo.seek(FONT_START+planeOffsets[pn])
+				fo.seek(FONT_START+planeOffsets[plane])
 				
-				numGlyphs = (FONT_END - (FONT_START+planeOffsets[pn])) // 18
-				if pn < NUM_PLANES-1:
-					numGlyphs = (planeOffsets[pn+1] - planeOffsets[pn]) // 18
+				numGlyphs = (FONT_END - (FONT_START+planeOffsets[plane])) // 18
+				if plane < NUM_PLANES-1:
+					numGlyphs = (planeOffsets[plane+1] - planeOffsets[plane]) // 18
 				if numGlyphs > 192:
 					numGlyphs = 192
 			
-				print(f"Injecting {os.path.basename(fimages[pn])} to plane {pn}")
+				print(f"Injecting {img_name} to plane {plane}")
 				for i in range(numGlyphs):
 					col = i % GLYPHS_PER_ROW
 					row = i // GLYPHS_PER_ROW
@@ -164,23 +188,27 @@ def inject(romin, imgin, romout):
 					fo.write(gdata)
 
 def main():
-	if len(sys.argv) == 4 and sys.argv[1].lower() == "extract":
+	if len(sys.argv) == 5 and sys.argv[1].lower() == "extract":
 		romin = sys.argv[2]
-		imgout = sys.argv[3]
-		extract(romin, imgout)
+		plane = sys.argv[3]
+		imgout = sys.argv[4]
+		extract(romin, imgout, plane)
 		return
-	if len(sys.argv) == 5 and sys.argv[1].lower() == "inject":
+	if len(sys.argv) == 6 and sys.argv[1].lower() == "inject":
 		romin = sys.argv[2]
-		imgin = sys.argv[3]
-		romout = sys.argv[4]
-		inject(romin, imgin, romout)
+		plane = sys.argv[3]
+		imgin = sys.argv[4]
+		romout = sys.argv[5]
+		inject(romin, imgin, romout, plane)
 		return
 	
-	print(sys.argv[0], "extract", "<rom in>", "<images out>")
-	print(sys.argv[0], "inject", "<rom in>", "<images in>", "<rom out>")
+	print(sys.argv[0], "extract <rom in> <plane num|all> <image(s) out>")
+	print(sys.argv[0], "inject <rom in> <plane num|all> <image(s) in> <rom out>")
 	print()
-	print("For image output, plane number will be added before file extension e.g. font.png->font_1.png.")
-	print("For image input, use a wildcard e.g. font*.png, images will be loaded in sorted order.")
+	print("Use a wildcard (*) in multi image paths.")
+	print("Escape the wildcard (\\*) or use quotes to prevent command expansion.")
+	print("Input wildcard is used to match multiple files.")
+	print("Output wildcard is replaced by plane number.")
 	print("Please use lossless image formats, PNG recommended.")
 
 if __name__ == "__main__":
