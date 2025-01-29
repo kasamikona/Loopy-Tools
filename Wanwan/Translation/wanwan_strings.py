@@ -3,6 +3,14 @@ import sys, struct, csv, os
 ROM_BASE = 0x0E000000
 VALID_POINTERS = range(ROM_BASE, ROM_BASE+0x400000, 4)
 REPACK_ALT_MAPPING = False
+REPACK_ALT_CUSTOM_CHARS = {
+	"\\": ["{ellipsis}", "{...}"],
+	"^":  ["{note}", "{music}"],
+	"`":  ["{dogface}"],
+	"{": ["{smiley}", "{smile}"],
+	"|": ["{heart}"],
+	"}": ["{star}"]
+}
 
 def should_exclude_string(data):
 	for ch in data:
@@ -112,6 +120,7 @@ def string_unescape(string_esc, alternate_mapping):
 			"%M": ["{momo}","{player}","{momomo}"],
 			"": ["{empty}","{nul}"],
 		}
+		mapping.update(REPACK_ALT_CUSTOM_CHARS)
 	else:
 		mapping = {
 			"!": ["{opt}","{option}"],
