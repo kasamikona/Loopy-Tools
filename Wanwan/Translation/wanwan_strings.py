@@ -2,14 +2,32 @@ import sys, struct, csv, os
 
 ROM_BASE = 0x0E000000
 VALID_POINTERS = range(ROM_BASE, ROM_BASE+0x400000, 4)
-REPACK_ALT_MAPPING = False
-REPACK_ALT_CUSTOM_CHARS = {
-	"\\": ["{ellipsis}", "{...}"],
+REPACK_FOR_PATCHED = True
+CSV_IGNORE_NEWLINES = False
+
+def _jis(h):
+	return bytes.fromhex(h).decode("shift-jis")
+
+REPACK_PATCH_CUSTOM_CHARS = {
 	"^":  ["{note}", "{music}"],
 	"`":  ["{dogface}"],
 	"{": ["{smiley}", "{smile}"],
 	"|": ["{heart}"],
-	"}": ["{star}"]
+	"}": ["{star}"],
+	_jis("8163"): ["{ellipsis}", "{...}"],
+	_jis("8180 8190"): ["{dpad_u}"],
+	_jis("8181 8191"): ["{dpad_d}"],
+	_jis("8182 8192"): ["{dpad_l}"],
+	_jis("8183 8193"): ["{dpad_r}"],
+	_jis("8182 8193"): ["{dpad_lr}", "{dpad_h}"],
+	_jis("8184 8194"): ["{dpad_ud}", "{dpad_v}"],
+	_jis("8185 8195"): ["{dpad_udlr}", "{dpad_all}", "{dpad}"],
+	_jis("8186 8196"): ["{btn_a}", "{button_a}"],
+	_jis("8187 8197"): ["{btn_b}", "{button_b}"],
+	_jis("8188 8198"): ["{btn_c}", "{button_c}"],
+	_jis("8189 8199"): ["{btn_d}", "{button_d}"],
+	_jis("818A 819A"): ["{btn_lt}", "{button_lt}"],
+	_jis("818B 819B"): ["{btn_rt}", "{button_rt}"],
 }
 
 def should_exclude_string(data):
@@ -55,7 +73,6 @@ def string_escape(string_raw):
 		"%B": "{baku}",
 		"%M": "{momo}",
 	}
-	
 	
 	is_ascii = True
 	has_noncontrol_ascii = False
@@ -105,8 +122,8 @@ def string_escape(string_raw):
 	
 	return string_esc
 
-def string_unescape(string_esc, alternate_mapping):
-	if alternate_mapping:
+def string_unescape(string_esc, for_patched):
+	if for_patched:
 		mapping = {
 			"\x19": ["{opt}","{option}"],
 			"\x1A": ["{aopt}","{altoption}"],
@@ -116,11 +133,11 @@ def string_unescape(string_esc, alternate_mapping):
 			"\x1D": ["{np}","{newpage}"],
 			"\x1E": ["{nl}","{newline}"],
 			"\x18": ["{slow}","{nofast}"],
-			"%B": ["{baku}","{dog}","{doggie}"],
-			"%M": ["{momo}","{player}","{momomo}"],
+			"%B": ["{baku}","{dog}","{doggie}","{DOGGIE}"],
+			"%M": ["{momo}","{player}","{momomo}","{MOMOMO}"],
 			"": ["{empty}","{nul}"],
 		}
-		mapping.update(REPACK_ALT_CUSTOM_CHARS)
+		mapping.update(REPACK_PATCH_CUSTOM_CHARS)
 	else:
 		mapping = {
 			"!": ["{opt}","{option}"],
@@ -131,8 +148,8 @@ def string_unescape(string_esc, alternate_mapping):
 			"k": ["{np}","{newpage}"],
 			"n": ["{nl}","{newline}"],
 			"^": ["{slow}","{nofast}"],
-			"%B": ["{baku}","{dog}","{doggie}"],
-			"%M": ["{momo}","{player}","{momomo}"],
+			"%B": ["{baku}","{dog}","{doggie}","{DOGGIE}"],
+			"%M": ["{momo}","{player}","{momomo}","{MOMOMO}"],
 			"": ["{empty}","{nul}"],
 		}
 	
@@ -369,8 +386,22 @@ def cmd_inject(args, cmdline):
 	with open(path_strings_in, newline="", encoding="utf-8") as f:
 		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
 		for row in cr:
+			if not row["origin"]:
+				continue
 			origin = int(row["origin"], 16)
-			text = row["text_translated"] or row["text_original"]
+			
+			if "text_translated" in cr.fieldnames:
+				text = row["text_translated"] or row["text_original"]
+			else:
+				text = row["text_trans_dialogwidth"] or row["text_trans_bookwidth"] or row["text_trans_printwidth"] or row["text_original"]
+			
+			if not text:
+				continue
+			
+			text = text.replace("\xA0", " ")
+			if not CSV_IGNORE_NEWLINES:
+				text = text.replace("\n", "{nl}")
+			
 			pointers = []
 			for p in row["pointers"].split(";"):
 				pn = int(p, 16)
@@ -378,7 +409,8 @@ def cmd_inject(args, cmdline):
 					pointers.append(pn-ROM_BASE)
 				else:
 					print(f"Warning: pointer \"{p}\" for string at 0x{origin:08X} invalid or out of range.")
-			text_data = string_unescape(text, remapcc).encode("shift-jis") + b"\x00"
+			
+			text_data = string_unescape(text, REPACK_FOR_PATCHED).encode("shift-jis") + b"\x00"
 			need_len = len(text_data)
 			string_data_needed += need_len
 			pointers_to_change += len(pointers)
