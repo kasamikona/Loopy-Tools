@@ -216,18 +216,18 @@ def validate_rom(data):
 def cmd_extract(args, cmdline):
 	if len(args) != 2:
 		print(f"Usage: {cmdline} <rom_in.bin> <strings_out.csv>")
-		return
+		return False
 	
 	path_rom_in = args[0]
 	path_strings_out = args[1]
 	
 	if not check_files(exist=[path_rom_in], noexist=[path_strings_out]):
-		return
+		return False
 	
 	with open(path_rom_in, "rb") as f:
 		data = f.read()
 	if not validate_rom(data):
-		return
+		return False
 	
 	# Gather all valid string pointers
 	# (ptrloc, strloc, strdata)
@@ -271,19 +271,21 @@ def cmd_extract(args, cmdline):
 				"pointers":        ";".join([f"0x{p:08X}" for p in e[3]]) # pointers separated by semicolon
 			})
 		print(f"Extracted {len(string_list):d} strings to {f.name}")
+	
+	return True
 
 def cmd_regions(args, cmdline):
 	if len(args) < 3:
 		print(f"Usage: {cmdline} <rom_in.bin> <strings_in.csv> <regions_out.csv> [0xExtraStart-0xExtraEnd] ...")
 		print("Multiple extra regions may be given. End address is exclusive.")
-		return
+		return False
 	
 	path_rom_in = args[0]
 	path_strings_in = args[1]
 	path_regions_out = args[2]
 	
 	if not check_files(exist=[path_rom_in, path_strings_in], noexist=[path_regions_out]):
-		return
+		return False
 	
 	regions = [] # (start, length)
 	for i in range(3, len(args)):
@@ -296,7 +298,7 @@ def cmd_regions(args, cmdline):
 	with open(path_rom_in, "rb") as f:
 		data = f.read()
 	if not validate_rom(data):
-		return
+		return False
 	
 	with open(path_strings_in, newline="", encoding="utf-8") as f:
 		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
@@ -356,11 +358,13 @@ def cmd_regions(args, cmdline):
 	for r in regions:
 		total_bytes += r[1]
 	print(f"Total {total_bytes:d} bytes available")
+	
+	return True
 
 def cmd_inject(args, cmdline):
 	if len(args) != 4:
 		print(f"Usage: {cmdline} <rom_in.bin> <strings_in.csv> <regions_in.csv> <rom_out.bin>")
-		return
+		return False
 	
 	path_rom_in = args[0]
 	path_strings_in = args[1]
@@ -371,12 +375,12 @@ def cmd_inject(args, cmdline):
 		print("Using alternate control codes and placeholders for patch")
 	
 	if not check_files(exist=[path_rom_in, path_strings_in, path_regions_in], noexist=[path_rom_out]):
-		return
+		return False
 	
 	with open(path_rom_in, "rb") as f:
 		data = f.read()
 	if not validate_rom(data):
-		return
+		return False
 	
 	newdata = bytearray(data)
 	
@@ -412,7 +416,7 @@ def cmd_inject(args, cmdline):
 			
 			text_data = string_unescape(text, REPACK_FOR_PATCHED).encode("shift-jis") + b"\x00"
 			need_len = len(text_data)
-			string_data_needed += need_len
+			string_data_needed += (need_len+3)&~3
 			pointers_to_change += len(pointers)
 			strings.append( (origin, text_data, need_len, pointers) )
 	
@@ -428,10 +432,10 @@ def cmd_inject(args, cmdline):
 			regions.append( (start, length) )
 			available_bytes += length
 	
-	print(f"New strings take up {string_data_needed:d} bytes, space available {available_bytes:d} bytes")
+	print(f"New strings take up {string_data_needed:d} bytes with padding, space available {available_bytes:d} bytes")
 	if string_data_needed > available_bytes:
 		print("Not enough space! Shorten strings or add more regions")
-		return
+		return False
 	
 	# Try fit the data into the regions with the chosen fitting algorithm
 	FIT_FIRST = True # first-fit, otherwise best-fit
@@ -462,7 +466,7 @@ def cmd_inject(args, cmdline):
 		
 		if best_region == None:
 			print("Can't fit strings with this fitting method! Shorten strings or add more regions")
-			return
+			return False
 		
 		# Insert data where found
 		fit_start = best_region[0]
@@ -493,6 +497,8 @@ def cmd_inject(args, cmdline):
 	with open(path_rom_out, "wb") as f:
 		f.write(bytes(newdata))
 		print(f"Wrote injected ROM to {f.name}")
+	
+	return True
 
 def handle_command():
 	commands = {"extract":cmd_extract, "regions":cmd_regions, "inject":cmd_inject}
@@ -501,7 +507,9 @@ def handle_command():
 		command = sys.argv[1].lower()
 		args = sys.argv[2:]
 		if command in commands:
-			commands[command](args, f"{prog} {command}")
+			success = commands[command](args, f"{prog} {command}")
+			if not success:
+				exit(1)
 			return
 	print(f"Usage: {prog} <{'|'.join(commands.keys())}> ...")
 
