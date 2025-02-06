@@ -93,7 +93,7 @@ def load_patchfile(patchpath, get_all=False):
 
 def apply_patch(inpath, outpath, patches, in_memory=True, reverse=False, skip_on_mismatch=False):
 	if not check_files(exist=[inpath], noexist=[outpath]):
-		return
+		return False
 	expect_size = max([p[0]+len(p[1]) for p in patches])
 	if reverse:
 		print("Reversing patches")
@@ -105,7 +105,7 @@ def apply_patch(inpath, outpath, patches, in_memory=True, reverse=False, skip_on
 			file_data = bytearray(infile.read())
 		if len(file_data) < expect_size:
 			print("Patch locations exceed file size")
-			return
+			return False
 		print("Applying patches in memory")
 		for patch in patches:
 			addr, data_old, data_new = patch
@@ -116,7 +116,7 @@ def apply_patch(inpath, outpath, patches, in_memory=True, reverse=False, skip_on
 					continue
 				else:
 					print(f"Data mismatch at address {addr:X}")
-					return
+					return False
 			file_data[addr:addr+patch_size] = data_new
 		print("Writing output file")
 		with open(outpath, "wb") as outfile:
@@ -126,7 +126,7 @@ def apply_patch(inpath, outpath, patches, in_memory=True, reverse=False, skip_on
 		shutil.copyfile(inpath, outpath)
 		if os.path.getsize(outpath) < expect_size:
 			print("Patch locations exceed file size")
-			return
+			return False
 		print("Applying patches on disk")
 		with open(outpath, "r+b") as outfile:
 			for patch in patches:
@@ -139,10 +139,11 @@ def apply_patch(inpath, outpath, patches, in_memory=True, reverse=False, skip_on
 						continue
 					else:
 						print(f"Data mismatch at address {addr:X}")
-						return
+						return False
 				outfile.seek(addr)
 				outfile.write(data_new)
 	print("Done")
+	return True
 
 def main():
 	print()
@@ -156,7 +157,9 @@ def main():
 			in_memory = False
 			reverse = (cmd == "unpatch")
 			skip_on_mismatch = reverse and SKIP_MISMATCH_WHEN_REVERSE
-			apply_patch(inpath, outpath, patches, in_memory, reverse, skip_on_mismatch)
+			success = apply_patch(inpath, outpath, patches, in_memory, reverse, skip_on_mismatch)
+			if not success:
+				exit(1)
 			return
 		elif cmd == "validate" and len(sys.argv) == 3:
 			patchpath = sys.argv[2]
