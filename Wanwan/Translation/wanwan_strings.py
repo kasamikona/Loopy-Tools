@@ -133,8 +133,10 @@ def string_unescape(string_esc, for_patched):
 			"\x1D": ["{np}","{newpage}"],
 			"\x1E": ["{nl}","{newline}"],
 			"\x18": ["{slow}","{nofast}"],
-			"%B": ["{baku}","{dog}","{doggie}","{DOGGIE}"],
-			"%M": ["{momo}","{player}","{momomo}","{MOMOMO}"],
+			"%b": ["{baku}","{dog}","{doggie}"],
+			"%m": ["{momo}","{player}","{momomo}"],
+			"%B": ["{BAKU}","{DOG}","{DOGGIE}"],
+			"%M": ["{MOMO}","{PLAYER}","{MOMOMO}"],
 			"": ["{empty}","{nul}"],
 		}
 		mapping.update(REPACK_PATCH_CUSTOM_CHARS)
@@ -356,8 +358,8 @@ def cmd_regions(args, cmdline):
 	print(f"Total {total_bytes:d} bytes available")
 
 def cmd_inject(args, cmdline):
-	if len(args) not in [4,5]:
-		print(f"Usage: {cmdline} <rom_in.bin> <strings_in.csv> <regions_in.csv> <rom_out.bin> ['remapcc']")
+	if len(args) != 4:
+		print(f"Usage: {cmdline} <rom_in.bin> <strings_in.csv> <regions_in.csv> <rom_out.bin>")
 		return
 	
 	path_rom_in = args[0]
@@ -365,10 +367,8 @@ def cmd_inject(args, cmdline):
 	path_regions_in = args[2]
 	path_rom_out = args[3]
 	
-	remapcc = False
-	if len(args) > 4:
-		remapcc = True
-		print("Using control code remapping")
+	if REPACK_FOR_PATCHED:
+		print("Using alternate control codes and placeholders for patch")
 	
 	if not check_files(exist=[path_rom_in, path_strings_in, path_regions_in], noexist=[path_rom_out]):
 		return
