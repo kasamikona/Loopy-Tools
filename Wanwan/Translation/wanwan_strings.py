@@ -150,8 +150,8 @@ def string_unescape(string_esc, for_patched):
 			"k": ["{np}","{newpage}"],
 			"n": ["{nl}","{newline}"],
 			"^": ["{slow}","{nofast}"],
-			"%B": ["{baku}","{dog}","{doggie}","{DOGGIE}"],
-			"%M": ["{momo}","{player}","{momomo}","{MOMOMO}"],
+			"%B": ["{baku}","{dog}","{doggie}","{BAKU}","{DOG}","{DOGGIE}"],
+			"%M": ["{momo}","{player}","{momomo}","{MOMO}","{PLAYER}","{MOMOMO}"],
 			"": ["{empty}","{nul}"],
 		}
 	
@@ -380,7 +380,7 @@ def cmd_inject(args, cmdline):
 	
 	newdata = bytearray(data)
 	
-	strings = {} # origin -> (text_data, need_len, [pointers])
+	strings = [] # (origin, text_data, need_len, [pointers])
 	string_data_needed = 0
 	pointers_to_change = 0
 	with open(path_strings_in, newline="", encoding="utf-8") as f:
@@ -414,7 +414,7 @@ def cmd_inject(args, cmdline):
 			need_len = len(text_data)
 			string_data_needed += need_len
 			pointers_to_change += len(pointers)
-			strings[origin] = (text_data, need_len, pointers)
+			strings.append( (origin, text_data, need_len, pointers) )
 	
 	print(f"Found {pointers_to_change:d} pointers to update")
 	
@@ -436,12 +436,12 @@ def cmd_inject(args, cmdline):
 	# Try fit the data into the regions with the chosen fitting algorithm
 	FIT_FIRST = True # first-fit, otherwise best-fit
 	FIT_DECREASING = True # decreasing (length), otherwise source order
-	strings_flat = list(strings.items())
 	if FIT_DECREASING:
-		strings_flat.sort(key=lambda x: x[1][1], reverse=True)
-	for so, s in strings_flat:
-		text_data = s[0]
-		need_len = s[1]
+		strings.sort(key=lambda x: x[2], reverse=True)
+	for s in strings:
+		origin = s[0]
+		text_data = s[1]
+		need_len = s[2]
 		
 		# Find best region
 		best_region = None
@@ -484,7 +484,7 @@ def cmd_inject(args, cmdline):
 			newdata[i] = 0xFF #(i&1)*9
 		
 		# Update pointers
-		for p in s[2]:
+		for p in s[3]:
 			newdata[p:p+4] = struct.pack(">I", fit_start+ROM_BASE)
 		
 	print("All strings injected successfully")
