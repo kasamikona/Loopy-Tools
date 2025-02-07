@@ -22,15 +22,23 @@ def main(args):
 	globalopts = ""
 	subparsers = parser.add_subparsers(required=True, metavar="action")
 	
-	aname = "extract"
-	ahelp = "Extract a raw or compressed resource"
-	afunc = cmd_extract
+	aname = "extract-section"
+	ahelp = "Extract the resource section from a ROM file"
+	afunc = cmd_extract_sec
+	parser_extract_sec = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_extract_sec.set_defaults(action=afunc)
+	parser_extract_sec.add_argument("path_rom_in", metavar="rom.bin", help="Source ROM input path")
+	parser_extract_sec.add_argument("path_sec_out", metavar="resources.bin", help="Resource section output path")
+	parser_extract_sec.add_argument("sec_size", metavar="sec_size", help="Size of the resource section", type=parsenum)
+	
+	aname = "extract-resource"
+	ahelp = "Extract a raw or compressed resource from a resource section"
+	afunc = cmd_extract_res
 	parser_extract = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
 	parser_extract.set_defaults(action=afunc)
-	parser_extract.add_argument("path_rom_in", metavar="rom.bin", help="Source ROM input path")
+	parser_extract.add_argument("path_sec_in", metavar="resources.bin", help="Resource section input path")
 	parser_extract.add_argument("res_index", metavar="res_index", help="Resource number to extract", type=parsenum)
 	parser_extract.add_argument("path_res_out", metavar="output.bin", help="Resource output path")
-	parser_extract.add_argument("-s", "--size", metavar="res_size", dest="res_size", help="Size of the source data", type=parsenum)
 	parser_extract.add_argument("-c", "--compressed", metavar="true/false", help="Decompress resource on extraction (default false)", type=parsebool, default=False)
 	
 	aname = "decode-image"
@@ -49,13 +57,26 @@ def main(args):
 	afunc = cmd_decode_tilesheet
 	parser_dec_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
 	parser_dec_tiles.set_defaults(action=afunc)
-	parser_dec_tiles.add_argument("path_res_tiles_in", metavar="res_tiles", help="Tilesheet resource file path (decompressed)")
+	parser_dec_tiles.add_argument("path_res_tiles_in", metavar="res_tiles", help="Tilesheet resource file path")
 	parser_dec_tiles.add_argument("path_res_pal_in", metavar="res_palette", help="Palette resource file path")
 	parser_dec_tiles.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
 	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-s", "--subpalette", metavar="subpal", help="Subpalette index (default 0)", dest="subpalette", type=parsenum, default=0)
-
+	
+	aname = "decode-tilemap"
+	ahelp = "Decode a tilemap to an image"
+	afunc = cmd_decode_tilemap
+	parser_dec_tmap = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_dec_tmap.set_defaults(action=afunc)
+	parser_dec_tmap.add_argument("path_res_map_in", metavar="res_map", help="Tilemap resource file path")
+	parser_dec_tmap.add_argument("path_res_tiles_in", metavar="res_tiles", help="Tilesheet resource file path")
+	parser_dec_tmap.add_argument("path_res_pal_in", metavar="res_palette", help="Palette resource file path")
+	parser_dec_tmap.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
+	parser_dec_tmap.add_argument("-b", "--screenb", metavar="true/false", help="Render screen B instead of A (default false)", dest="screenb", type=parsebool, default=False)
+	parser_dec_tmap.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
+	parser_dec_tmap.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	
 	aname = "decode-palette"
 	ahelp = "Decode a palette to a grid image"
 	afunc = cmd_decode_palette
