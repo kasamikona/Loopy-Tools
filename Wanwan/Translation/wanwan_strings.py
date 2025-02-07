@@ -1,9 +1,13 @@
 import sys, struct, csv, os
 
-ROM_BASE = 0x0E000000
-VALID_POINTERS = range(ROM_BASE, ROM_BASE+0x400000, 4)
 REPACK_FOR_PATCHED = True
 CSV_IGNORE_NEWLINES = False
+EXTRACT_ALIGN = 4
+INJECT_ALIGN = 4
+DEDUPE_STRATEGY = 2
+
+ROM_BASE = 0x0E000000
+ROM_SIZE_MAX = 0x400000
 
 def _jis(h):
 	return bytes.fromhex(h).decode("shift-jis")
@@ -33,7 +37,6 @@ REPACK_PATCH_CUSTOM_CHARS = {
 def should_exclude_string(data):
 	for ch in data:
 		if (ch < 0x20 and not (ch in b"\x09\x0A\x0D")) or ch == 0x7F:
-		#if ch < 0x20 or ch == 0x7F:
 			return True
 	try:
 		data.decode("shift-jis")
@@ -208,7 +211,8 @@ def check_files(exist, noexist):
 
 def validate_rom(data):
 	startptr = struct.unpack(">I", data[0:4])[0]
-	if not startptr in VALID_POINTERS:
+	valid_pointers = range(ROM_BASE, ROM_BASE+len(data), 2)
+	if not startptr in valid_pointers:
 		print("Doesn't look like a valid ROM")
 		return False
 	return True
@@ -231,7 +235,8 @@ def cmd_extract(args, cmdline):
 	
 	# Gather all valid string pointers
 	# (ptrloc, strloc, strdata)
-	stringpointers = gather_strings(data, VALID_POINTERS)
+	valid_pointers = range(ROM_BASE, ROM_BASE+len(data), EXTRACT_ALIGN)
+	stringpointers = gather_strings(data, valid_pointers)
 	print(f"Found {len(stringpointers):d} string pointers")
 	
 	origin_set = set()
@@ -307,10 +312,10 @@ def cmd_regions(args, cmdline):
 			strlen = int(row["origin_length"])
 			strlen_padded = strlen
 			# Always pad to 2 bytes as SuperH code is generally word-aligned
-			if (strlen & 1):
+			if (strlen & 1) and (EXTRACT_ALIGN > 1):
 				strlen += 1
 			# Pad to 4 bytes if it looks like padding pattern
-			if (strlen & 2):
+			if (strlen & 2) and (EXTRACT_ALIGN > 2):
 				nextdata = struct.unpack(">H", data[strloc+strlen:strloc+strlen+2])[0]
 				if nextdata in [0x0009, 0xFFFF]:
 					strlen += 2
@@ -385,7 +390,6 @@ def cmd_inject(args, cmdline):
 	newdata = bytearray(data)
 	
 	strings = [] # (origin, text_data, need_len, [pointers])
-	string_data_needed = 0
 	pointers_to_change = 0
 	with open(path_strings_in, newline="", encoding="utf-8") as f:
 		cr = csv.DictReader(csv_decomment(f), restval="", delimiter=",", quotechar='"')
@@ -407,20 +411,60 @@ def cmd_inject(args, cmdline):
 				text = text.replace("\n", "{nl}")
 			
 			pointers = []
+			valid_pointer_locations = range(ROM_BASE, ROM_BASE+ROM_SIZE_MAX, 4)
 			for p in row["pointers"].split(";"):
 				pn = int(p, 16)
-				if pn in VALID_POINTERS:
+				if pn in valid_pointer_locations:
 					pointers.append(pn-ROM_BASE)
 				else:
 					print(f"Warning: pointer \"{p}\" for string at 0x{origin:08X} invalid or out of range.")
 			
 			text_data = string_unescape(text, REPACK_FOR_PATCHED).encode("shift-jis") + b"\x00"
 			need_len = len(text_data)
-			string_data_needed += (need_len+3)&~3
 			pointers_to_change += len(pointers)
 			strings.append( (origin, text_data, need_len, pointers) )
 	
 	print(f"Found {pointers_to_change:d} pointers to update")
+	
+	# Deduplicate strings by chosen strategy
+	dedupe_count = 0
+	if DEDUPE_STRATEGY == 1:
+		print("Deduplicating with strategy \"only empty\"")
+		empty_index = None
+		strings_deduped = []
+		for s in strings:
+			if s[1] == b"\x00":
+				if empty_index != None:
+					sd = strings_deduped[empty_index]
+					pointers = sd[3]
+					pointers.extend(s[3])
+					strings_deduped[empty_index] = (sd[0], sd[1], sd[2], pointers)
+					dedupe_count += 1
+				else:
+					empty_index = len(strings_deduped)
+					strings_deduped.append(s)
+			else:
+				strings_deduped.append(s)
+		strings = strings_deduped
+	if DEDUPE_STRATEGY == 2:
+		print("Deduplicating with strategy \"any match\"")
+		strings_deduped = []
+		seen_strings = {}
+		for s in strings:
+			text = s[1]
+			if text in seen_strings:
+				sdi = seen_strings[text]
+				sd = strings_deduped[sdi]
+				pointers = sd[3]
+				pointers.extend(s[3])
+				strings_deduped[sdi] = (sd[0], sd[1], sd[2], pointers)
+				dedupe_count += 1
+			else:
+				seen_strings[text] = len(strings_deduped)
+				strings_deduped.append(s)
+		strings = strings_deduped
+	if dedupe_count > 0:
+		print(f"Removed {dedupe_count} duplicate strings")
 	
 	regions = []
 	available_bytes = 0
@@ -432,6 +476,11 @@ def cmd_inject(args, cmdline):
 			regions.append( (start, length) )
 			available_bytes += length
 	
+	# Count and check needed space
+	string_data_needed = 0
+	for s in strings:
+		need_len = s[2]
+		string_data_needed += (need_len+INJECT_ALIGN-1) & (-INJECT_ALIGN)
 	print(f"New strings take up {string_data_needed:d} bytes with padding, space available {available_bytes:d} bytes")
 	if string_data_needed > available_bytes:
 		print("Not enough space! Shorten strings or add more regions")
@@ -475,7 +524,7 @@ def cmd_inject(args, cmdline):
 		
 		# Update region size
 		new_start = fit_end
-		new_start += (4 - (new_start&3))&3 # Pad to 4 bytes
+		new_start = (new_start+INJECT_ALIGN-1) & (-INJECT_ALIGN) # Pad to alignment
 		new_len = best_region[1] + best_region[0] - new_start
 		if new_len <= 0:
 			regions.remove(best_region)
