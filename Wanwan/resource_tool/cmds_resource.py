@@ -6,7 +6,7 @@ ROM_BASE = 0x0E000000
 RESOURCES_SECTION_PTR = 0x70000
 RESOURCES_SECTION_MAX_SIZE = 0x200000-0x70000
 
-def get_res_count_table(sec_data):
+def _get_res_count_table(sec_data):
 	# Load count and table, ensure input is sane
 	if len(sec_data) < 4:
 		print("Size too small, can't read resource count")
@@ -25,7 +25,7 @@ def get_res_count_table(sec_data):
 	
 	return (res_count, res_table)
 
-def read_one_resource(sec_data, res_count, res_table, res_index):
+def _read_one_resource(sec_data, res_count, res_table, res_index):
 	# Get resource pointer
 	if res_index < 0 or res_index >= res_count:
 		print(f"Resource {res_index} out of range (0-{res_count-1})")
@@ -53,10 +53,10 @@ def cmd_extract_sec(args):
 	sec_out = args.path_sec_out
 	sec_size = args.sec_size
 	if not check_files(exist=[rom_in], noexist=[sec_out]):
-		return
+		return False
 	if sec_size <= 0:
 		print("Invalid size")
-		return
+		return False
 	
 	# Read input data
 	with open(rom_in, "rb") as rom:
@@ -68,7 +68,7 @@ def cmd_extract_sec(args):
 	for b in post_data:
 		if b != 0xFF:
 			print("Size too small, some data after end")
-			return
+			return False
 	
 	# Warn if the data has too many FFs at the end
 	check_ff_count = 5
@@ -79,15 +79,16 @@ def cmd_extract_sec(args):
 			print(f"Warning: data ends with at least {check_ff_count} \"FF\" bytes, size may be too large")
 	
 	# Load section data for validation
-	res_count_table = get_res_count_table(sec_data)
+	res_count_table = _get_res_count_table(sec_data)
 	if res_count_table == None:
-		return
+		return False
 	
 	# Write output data
 	make_dirs_for_file(sec_out)
 	with open(sec_out, "wb") as sec:
 		sec.write(sec_data)
 		print(f"Saved resources section to {sec_out}")
+	return True
 
 def cmd_extract_res(args):
 	# Parse and verify command arguments
@@ -96,24 +97,24 @@ def cmd_extract_res(args):
 	res_index = args.res_index
 	comp = args.compressed
 	if not check_files(exist=[sec_in], noexist=[res_out]):
-		return
+		return False
 	
 	# Read input data
 	with open(sec_in, "rb") as sec:
 		sec_data = sec.read()
 	
 	# Load and validate section data
-	res_count_table = get_res_count_table(sec_data)
+	res_count_table = _get_res_count_table(sec_data)
 	if res_count_table == None:
-		return
+		return False
 	res_count, res_table = res_count_table
 	
 	# Read resource and decompress if requested
-	res_data = read_one_resource(sec_data, res_count, res_table, res_index)
+	res_data = _read_one_resource(sec_data, res_count, res_table, res_index)
 	if comp:
 		res_data = decompress(res_data)
 		if not res_data:
-			return
+			return False
 		print(f"Decompressed {len(res_data)} bytes")
 	
 	# Write output data
@@ -121,3 +122,4 @@ def cmd_extract_res(args):
 	with open(res_out, "wb") as res:
 		res.write(res_data)
 		print(f"Saved resource {res_index} to {res_out}")
+	return True

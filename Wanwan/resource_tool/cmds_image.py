@@ -11,7 +11,7 @@ def cmd_decode_image(args):
 	transp = args.transparent
 	comp = args.compressed
 	if not check_files(exist=[res_im_in, res_pal_in], noexist=[im_out]):
-		return
+		return False
 	print("Transparent: " + ("YES" if transp else "NO"))
 	print("Compressed: " + ("YES" if comp else "NO"))
 	
@@ -24,7 +24,7 @@ def cmd_decode_image(args):
 	# Load palette
 	palette = load_palette(data_palette)
 	if not palette:
-		return
+		return False
 	palette_rgba = palette_to_rgba(palette, first_transparent=transp)
 	palette_size = len(palette)
 	#print_palette_rgba(palette_rgba)
@@ -33,7 +33,7 @@ def cmd_decode_image(args):
 	if comp:
 		data_image = decompress(data_image)
 		if data_image == None:
-			return
+			return False
 		print(f"Decompressed {len(data_image)} bytes")
 	#comp_uncomp_other = "uncompressed" if comp else "compressed"
 	comp_uncomp_other = "compressed = false" if comp else "compressed = true"
@@ -43,7 +43,7 @@ def cmd_decode_image(args):
 	header_size = struct.calcsize(header_fmt)
 	if len(data_image) < header_size:
 		print(f"Data too short, try {comp_uncomp_other}.")
-		return
+		return False
 	img_width, img_height = struct.unpack(header_fmt, data_image[:header_size])
 	data_image = data_image[header_size:]
 	img_width = img_width or 256
@@ -53,7 +53,7 @@ def cmd_decode_image(args):
 	# Some resources are 1 byte too long for some reason
 	if len(data_image) not in [expect_size, expect_size+1]:
 		print(f"Data size mismatch, try {comp_uncomp_other}.")
-		return
+		return False
 	
 	# Write output image
 	img = Image.new("RGBA", (img_width, img_height), color = (0,0,0,0))
@@ -68,3 +68,4 @@ def cmd_decode_image(args):
 	print(f"Saving to {im_out}")
 	make_dirs_for_file(im_out)
 	img.save(im_out)
+	return True

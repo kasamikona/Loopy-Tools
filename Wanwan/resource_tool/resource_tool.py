@@ -94,7 +94,9 @@ def main(args):
 	parser_dec_msp.add_argument("path_text_out", metavar="output.txt", help="Text output path")
 	
 	parsed_args = parser.parse_args(args)
-	parsed_args.action(parsed_args)
+	success = parsed_args.action(parsed_args)
+	if not success:
+		exit(1)
 
 if __name__ == "__main__":
 	main(sys.argv)

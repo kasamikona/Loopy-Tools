@@ -6,7 +6,7 @@ def cmd_decode_metasprite(args):
 	msp_in = args.path_metasprite_in
 	txt_out = args.path_text_out
 	if not check_files(exist=[msp_in], noexist=[txt_out]):
-		return
+		return False
 	
 	# Read input data
 	with open(msp_in, "rb") as f:
@@ -15,17 +15,17 @@ def cmd_decode_metasprite(args):
 	# Parse metasprite header
 	if len(data) < 5:
 		print("Header too short")
-		return
+		return False
 	num_groups, data_offset = struct.unpack(">HH", data[:4])
 	if num_groups != 1 or data_offset != 4:
 		print(f"Unexpected header: num_groups={num_groups} data_offset={data_offset}")
 		print("Metasprite format requires further analysis")
-		return
+		return False
 	num_sprites = data[4]
 	data = data[5:]
 	if len(data) < num_sprites*4:
 		print("Data too short")
-		return
+		return False
 	
 	# Read sprite data
 	sprites = [None]*num_sprites
@@ -55,3 +55,4 @@ def cmd_decode_metasprite(args):
 			f.write(f"flip_x={_bs(attr_flipx)}\n")
 			f.write(f"flip_y={_bs(attr_flipy)}\n")
 			f.write(f"size={size_table[attr_size]}\n")
+	return True

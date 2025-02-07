@@ -6,7 +6,7 @@ def cmd_decode_palette(args):
 	pal_in = args.path_pal_in
 	im_out = args.path_image_out
 	if not check_files(exist=[pal_in], noexist=[im_out]):
-		return
+		return False
 	
 	# Read input data
 	with open(pal_in, "rb") as f:
@@ -15,7 +15,7 @@ def cmd_decode_palette(args):
 	# Load palette
 	palette = load_palette(data_palette)
 	if not palette:
-		return
+		return False
 	palette_rgba = palette_to_rgba(palette, first_transparent=False)
 	palette_size = len(palette)
 	print_palette_rgba(palette_rgba)
@@ -35,3 +35,4 @@ def cmd_decode_palette(args):
 	print(f"Saving to {im_out}")
 	make_dirs_for_file(im_out)
 	img.save(im_out)
+	return True

@@ -66,7 +66,7 @@ def cmd_decode_tilesheet(args):
 	comp = args.compressed
 	subpal = args.subpalette
 	if not check_files(exist=[res_tiles_in, res_pal_in], noexist=[im_out]):
-		return
+		return False
 	print("Transparent: " + ("YES" if transp else "NO"))
 	print("Compressed: " + ("YES" if comp else "NO"))
 	print(f"Subpalette: {subpal}")
@@ -80,7 +80,7 @@ def cmd_decode_tilesheet(args):
 	# Load palette
 	palette = load_palette(data_palette)
 	if not palette:
-		return
+		return False
 	palette_size = len(palette)
 	
 	# Get subpalette from palette
@@ -88,7 +88,7 @@ def cmd_decode_tilesheet(args):
 	print(f"Available subpalettes: {num_subpals}")
 	if subpal < 0 or subpal >= num_subpals:
 		print(f"Invalid subpalette {subpal}")
-		return
+		return False
 	palette = palette[subpal*16:][:16]
 	palette_size = 16
 
@@ -100,7 +100,7 @@ def cmd_decode_tilesheet(args):
 	if comp:
 		data_tiles = decompress(data_tiles)
 		if data_tiles == None:
-			return
+			return False
 		print(f"Decompressed {len(data_tiles)} bytes")
 	#comp_uncomp_other = "uncompressed" if comp else "compressed"
 	comp_uncomp_other = "compressed = false" if comp else "compressed = true"
@@ -109,7 +109,7 @@ def cmd_decode_tilesheet(args):
 	tiles = _load_tiles(data_tiles)
 	if tiles == None:
 		print(f"Try {comp_uncomp_other}.")
-		return
+		return False
 	num_tiles = len(tiles)
 	
 	# Compute output image dimensions
@@ -130,6 +130,7 @@ def cmd_decode_tilesheet(args):
 	print(f"Saving to {im_out}")
 	make_dirs_for_file(im_out)
 	img.save(im_out)
+	return True
 
 def cmd_decode_tilemap(args):
 	# Parse and verify command arguments
@@ -141,7 +142,7 @@ def cmd_decode_tilemap(args):
 	comp = args.compressed
 	scrnb = args.screenb
 	if not check_files(exist=[res_map_in, res_tiles_in, res_pal_in], noexist=[im_out]):
-		return
+		return False
 	print("Transparent: " + ("YES" if transp else "NO"))
 	print("Compressed: " + ("YES" if comp else "NO"))
 	print("Screen: " + ("B" if scrnb else "A"))
@@ -157,7 +158,7 @@ def cmd_decode_tilemap(args):
 	# Load palette
 	palette = load_palette(data_palette)
 	if not palette:
-		return
+		return False
 	palette_size = len(palette)
 	
 	# Get subpalettes from palette
@@ -176,7 +177,7 @@ def cmd_decode_tilemap(args):
 		data_map = decompress(data_map)
 		data_tiles = decompress(data_tiles)
 		if data_map == None or data_tiles == None:
-			return
+			return False
 		#print(f"Decompressed {len(data_map)} bytes")
 	comp_uncomp_other = "compressed = false" if comp else "compressed = true"
 	
@@ -184,7 +185,7 @@ def cmd_decode_tilemap(args):
 	tm = _load_map(data_map)
 	if tm == None:
 		print(f"Try {comp_uncomp_other}.")
-		return
+		return False
 	tilemap, map_width, map_height = tm
 	tilesize = 8
 	
@@ -192,7 +193,7 @@ def cmd_decode_tilemap(args):
 	tiles = _load_tiles(data_tiles)
 	if tiles == None:
 		print(f"Try {comp_uncomp_other}.")
-		return
+		return False
 	num_tiles = len(tiles)
 	print(f"Tilesheet contains {num_tiles} tiles")
 	
@@ -212,10 +213,10 @@ def cmd_decode_tilemap(args):
 				continue
 			if tile_idx >= num_tiles:
 				print(f"Invalid tile index {tile_idx} at tile {x},{y}")
-				return
+				return False
 			if tile_subpal >= num_subpals:
 				print(f"Invalid subpalette {tile_subpal} at tile {x},{y}")
-				return
+				return False
 			for tx in range(tilesize):
 				for ty in range(tilesize):
 					color_value = tiles[tile_idx][ty*8 + tx]
@@ -225,3 +226,4 @@ def cmd_decode_tilemap(args):
 	print(f"Saving to {im_out}")
 	make_dirs_for_file(im_out)
 	img.save(im_out)
+	return True
