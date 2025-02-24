@@ -94,3 +94,6 @@ def make_dirs_for_file(filepath):
 	filepath = os.path.abspath(filepath)
 	dirpath = os.path.dirname(filepath)
 	os.makedirs(dirpath, exist_ok=True)
+
+def paths_equivalent(a, b):
+	return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))

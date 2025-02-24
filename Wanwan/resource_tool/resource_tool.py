@@ -34,12 +34,24 @@ def main(args):
 	aname = "extract-resource"
 	ahelp = "Extract a raw or compressed resource from a resource section"
 	afunc = cmd_extract_res
-	parser_extract = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
-	parser_extract.set_defaults(action=afunc)
-	parser_extract.add_argument("path_sec_in", metavar="resources.bin", help="Resource section input path")
-	parser_extract.add_argument("res_index", metavar="res_index", help="Resource number to extract", type=parsenum)
-	parser_extract.add_argument("path_res_out", metavar="output.bin", help="Resource output path")
-	parser_extract.add_argument("-c", "--compressed", metavar="true/false", help="Decompress resource on extraction (default false)", type=parsebool, default=False)
+	parser_extract_res = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_extract_res.set_defaults(action=afunc)
+	parser_extract_res.add_argument("path_sec_in", metavar="resources.bin", help="Resource section input path")
+	parser_extract_res.add_argument("res_index", metavar="res_index", help="Resource number to extract", type=parsenum)
+	parser_extract_res.add_argument("path_res_out", metavar="output.bin", help="Resource file output path")
+	parser_extract_res.add_argument("-c", "--compressed", metavar="true/false", help="Decompress resource on extraction (default false)", dest="compressed", type=parsebool, default=False)
+	
+	aname = "inject-resource"
+	ahelp = "Inject a raw or compressed resource into a resource section"
+	afunc = cmd_inject_res
+	parser_inject_res = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_inject_res.set_defaults(action=afunc)
+	parser_inject_res.add_argument("path_sec_in", metavar="resources.bin", help="Resource section input path")
+	parser_inject_res.add_argument("path_res_in", metavar="input.bin", help="Resource file input path")
+	parser_inject_res.add_argument("res_index", metavar="res_index", help="Resource number to inject, or -1 to append", type=parsenum)
+	parser_inject_res.add_argument("path_sec_out", metavar="resources_out.bin", help="Modified resource section output path, or \"@\" to inject in-place")
+	parser_inject_res.add_argument("-c", "--compressed", metavar="true/false", help="Compress resource on injection (default false)", dest="compressed", type=parsebool, default=False)
+	parser_inject_res.add_argument("-m", "--max_size", metavar="max_size", help=f"Maximum section size (default based on original ROM size)", dest="max_size", type=parsenum, default=-1)
 	
 	aname = "decode-image"
 	ahelp = "Decode an 8bpp image"
@@ -67,12 +79,12 @@ def main(args):
 	aname = "encode-tiles"
 	ahelp = "Encode a 4bpp tilesheet from a sheet image"
 	afunc = cmd_encode_tilesheet
-	parser_dec_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
-	parser_dec_tiles.set_defaults(action=afunc)
-	parser_dec_tiles.add_argument("path_image_in", metavar="input.png", help="Sheet image path (must have grayscale palette with/without transparency)")
-	parser_dec_tiles.add_argument("path_res_tiles_out", metavar="res_tiles.bin", help="Tilesheet resource file output path")
-	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
-	parser_dec_tiles.add_argument("-n", "--num_tiles", metavar="num", help="Specify number of tiles in sheet (default up to last non-empty tile)", dest="num_tiles", type=parsenum, default=-1)
+	parser_enc_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_enc_tiles.set_defaults(action=afunc)
+	parser_enc_tiles.add_argument("path_image_in", metavar="input.png", help="Sheet image path (must have grayscale palette with/without transparency)")
+	parser_enc_tiles.add_argument("path_res_tiles_out", metavar="res_tiles.bin", help="Tilesheet resource file output path")
+	parser_enc_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_enc_tiles.add_argument("-n", "--num_tiles", metavar="num", help="Specify number of tiles in sheet (default up to last non-empty tile)", dest="num_tiles", type=parsenum, default=-1)
 	
 	aname = "decode-tilemap"
 	ahelp = "Decode a tilemap to an image"
