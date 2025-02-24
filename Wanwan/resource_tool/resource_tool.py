@@ -31,6 +31,17 @@ def main(args):
 	parser_extract_sec.add_argument("path_sec_out", metavar="resources.bin", help="Resource section output path")
 	parser_extract_sec.add_argument("sec_size", metavar="sec_size", help="Size of the resource section", type=parsenum)
 	
+	aname = "inject-section"
+	ahelp = "Inject a resource section to a ROM file"
+	afunc = cmd_inject_sec
+	parser_inject_sec = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_inject_sec.set_defaults(action=afunc)
+	parser_inject_sec.add_argument("path_rom_in", metavar="rom.bin", help="Base ROM input path")
+	parser_inject_sec.add_argument("path_sec_in", metavar="resources.bin", help="Resource section input path")
+	parser_inject_sec.add_argument("path_rom_out", metavar="rom_out.bin", help="Modified ROM output path, or \"@\" to inject in-place")
+	parser_inject_sec.add_argument("-a", "--align", metavar="align", help="End alignment if the ROM is resized (default 4096)", dest="align", type=parsenum, default=4096)
+	parser_inject_sec.add_argument("-s", "--shrink", metavar="true/false", help="Allow the ROM to shrink", dest="shrink", type=parsebool, default=False)
+	
 	aname = "extract-resource"
 	ahelp = "Extract a raw or compressed resource from a resource section"
 	afunc = cmd_extract_res
