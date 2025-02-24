@@ -16,6 +16,7 @@ class ArgParserHelpOnError(argparse.ArgumentParser):
 		sys.exit(2)
 
 def main(args):
+	print()
 	progname = os.path.basename(args.pop(0))
 	
 	parser = ArgParserHelpOnError(prog=progname, epilog="Select an action for more help.")

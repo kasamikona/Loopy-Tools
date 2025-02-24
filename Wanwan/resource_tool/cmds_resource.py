@@ -60,7 +60,7 @@ def _read_one_resource(sec_data, res_count, res_table, res_index):
 		return None
 	# Read the data
 	res_offset = res_ptr - (ROM_BASE+RESOURCES_SECTION_PTR)
-	res_data = sec_data[res_offset:res_offset+size]
+	res_data = sec_data[res_offset:res_offset+res_size]
 	return res_data
 
 def _read_all_resources(sec_data, res_count, res_table):
