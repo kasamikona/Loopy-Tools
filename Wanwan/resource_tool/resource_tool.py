@@ -57,12 +57,22 @@ def main(args):
 	afunc = cmd_decode_tilesheet
 	parser_dec_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
 	parser_dec_tiles.set_defaults(action=afunc)
-	parser_dec_tiles.add_argument("path_res_tiles_in", metavar="res_tiles", help="Tilesheet resource file path")
-	parser_dec_tiles.add_argument("path_res_pal_in", metavar="res_palette", help="Palette resource file path")
+	parser_dec_tiles.add_argument("path_res_tiles_in", metavar="res_tiles.bin", help="Tilesheet resource file path")
+	parser_dec_tiles.add_argument("path_res_pal_in", metavar="res_palette.bin", help="Palette resource file path, or \"-\" for grayscale")
 	parser_dec_tiles.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
 	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-s", "--subpalette", metavar="subpal", help="Subpalette index (default 0)", dest="subpalette", type=parsenum, default=0)
+	
+	aname = "encode-tiles"
+	ahelp = "Encode a 4bpp tilesheet from a sheet image"
+	afunc = cmd_encode_tilesheet
+	parser_dec_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
+	parser_dec_tiles.set_defaults(action=afunc)
+	parser_dec_tiles.add_argument("path_image_in", metavar="input.png", help="Sheet image path (must have grayscale palette with/without transparency)")
+	parser_dec_tiles.add_argument("path_res_tiles_out", metavar="res_tiles.bin", help="Tilesheet resource file output path")
+	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_dec_tiles.add_argument("-n", "--num_tiles", metavar="num", help="Specify number of tiles in sheet (default up to last non-empty tile)", dest="num_tiles", type=parsenum, default=-1)
 	
 	aname = "decode-tilemap"
 	ahelp = "Decode a tilemap to an image"

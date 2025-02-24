@@ -1,7 +1,7 @@
 import struct
 from PIL import Image
 from util import check_files, make_dirs_for_file, load_palette, palette_to_rgba, print_palette_rgba
-from lzss_ww import decompress
+from lzss_ww import compress, decompress
 
 def _load_tiles(data):
 	header_fmt = ">H"
@@ -15,8 +15,8 @@ def _load_tiles(data):
 		print("No tiles")
 		return None
 	expect_size = num_tiles*32
-	# Some resources are 1 byte too long for some reason
-	if len(data) not in [expect_size, expect_size+1]:
+	# Resources may be padded
+	if len(data) not in range(expect_size, expect_size+4):
 		print("Data size mismatch")
 		return None
 	tiles = [None]*num_tiles
@@ -29,6 +29,23 @@ def _load_tiles(data):
 			pv &= 15
 			tiles[t][p] = pv
 	return tiles
+
+def _store_tiles(tiles):
+	num_tiles = len(tiles)
+	if num_tiles == 0:
+		print("No tiles")
+		return None
+	header_fmt = ">H"
+	header_size = struct.calcsize(header_fmt)
+	data = bytearray(num_tiles*32)
+	for t in range(num_tiles):
+		for p in range(64):
+			pv = tiles[t][p] & 15
+			if p&1 == 0:
+				pv <<= 4
+			data[t*32 + p//2] |= pv
+	data = struct.pack(header_fmt, num_tiles) + bytes(data)
+	return data
 
 def _load_map(data):
 	header_fmt = ">BB"
@@ -65,7 +82,8 @@ def cmd_decode_tilesheet(args):
 	transp = args.transparent
 	comp = args.compressed
 	subpal = args.subpalette
-	if not check_files(exist=[res_tiles_in, res_pal_in], noexist=[im_out]):
+	use_graymap = res_pal_in == "-"
+	if not check_files(exist=[res_tiles_in] if use_graymap else [res_tiles_in, res_pal_in], noexist=[im_out]):
 		return False
 	print("Transparent: " + ("YES" if transp else "NO"))
 	print("Compressed: " + ("YES" if comp else "NO"))
@@ -74,27 +92,34 @@ def cmd_decode_tilesheet(args):
 	# Read input data
 	with open(res_tiles_in, "rb") as f:
 		data_tiles = f.read()
-	with open(res_pal_in, "rb") as f:
-		data_palette = f.read()
+	if not use_graymap:
+		with open(res_pal_in, "rb") as f:
+			data_palette = f.read()
 	
 	# Load palette
-	palette = load_palette(data_palette)
-	if not palette:
-		return False
-	palette_size = len(palette)
-	
-	# Get subpalette from palette
-	num_subpals = palette_size // 16
-	print(f"Available subpalettes: {num_subpals}")
-	if subpal < 0 or subpal >= num_subpals:
-		print(f"Invalid subpalette {subpal}")
-		return False
-	palette = palette[subpal*16:][:16]
-	palette_size = 16
-
-	# Convert palette to RGBA
-	palette_rgba = palette_to_rgba(palette, first_transparent=transp)
-	#print_palette_rgba(palette_rgba)
+	if use_graymap:
+		palette_rgba = [(x,x,x,255) for x in [round(x*255/15) for x in range(16)]]
+		if transp:
+			palette_rgba[0] = (0,0,0,0)
+		print("Using 16-step grayscale map (subpalette ignored)")
+	else:
+		palette = load_palette(data_palette)
+		if not palette:
+			return False
+		palette_size = len(palette)
+		
+		# Get subpalette from palette
+		num_subpals = palette_size // 16
+		print(f"Available subpalettes: {num_subpals}")
+		if subpal < 0 or subpal >= num_subpals:
+			print(f"Invalid subpalette {subpal}")
+			return False
+		palette = palette[subpal*16:][:16]
+		palette_size = 16
+		
+		# Convert palette to RGBA
+		palette_rgba = palette_to_rgba(palette, first_transparent=transp)
+		#print_palette_rgba(palette_rgba)
 	
 	# Decompress tilesheet data if necessary
 	if comp:
@@ -130,6 +155,81 @@ def cmd_decode_tilesheet(args):
 	print(f"Saving to {im_out}")
 	make_dirs_for_file(im_out)
 	img.save(im_out)
+	return True
+
+def cmd_encode_tilesheet(args):
+	# Parse and verify command arguments
+	im_in = args.path_image_in
+	res_tiles_out = args.path_res_tiles_out
+	comp = args.compressed
+	num_tiles = args.num_tiles
+	trim_end = False
+	if num_tiles < 1:
+		num_tiles = None
+		trim_end = True
+	if not check_files(exist=[im_in], noexist=[res_tiles_out]):
+		return False
+	print("Compressed: " + ("YES" if comp else "NO"))
+	print("Number of tiles: " + str(num_tiles or "(from image)"))
+	
+	# Read input data
+	try:
+		img = Image.open(im_in).convert("RGBA")
+	except Exception as e:
+		print("Error opening image")
+		return False
+	pix = img.load()
+	num_columns = img.width // 8
+	num_rows = img.height // 8
+	print(f"Image contains {num_columns} columns x {num_rows} rows")
+	if num_tiles == None:
+		num_tiles = num_columns * num_rows
+	
+	# Get tiles from input image
+	tiles = [None]*num_tiles
+	last_nonempty = -1
+	for t in range(num_tiles):
+		tiledata = [0]*64
+		empty = True
+		for tx in range(8):
+			for ty in range(8):
+				ix = (t%num_columns)*8 + tx
+				iy = (t//num_columns)*8 + ty
+				color = pix[ix,iy]
+				gray16 = round((sum(color[:3])/3)*15/255)
+				alpha1 = round(color[3]*1/255)
+				value = gray16 if alpha1 > 0 else 0
+				if value > 0:
+					empty = False
+				tiledata[ty*8 + tx] = value
+		tiles[t] = tiledata
+		if not empty:
+			last_nonempty = t
+	if trim_end and last_nonempty+1 != num_tiles:
+		diff = num_tiles - (last_nonempty+1)
+		print(f"Last {diff} cells in image are empty, trimming (specify num_tiles to override)")
+		num_tiles = last_nonempty+1
+		if num_tiles < 1:
+			print("No tiles to encode")
+			return False
+		tiles = tiles[:num_tiles]
+	
+	# Create tilesheet data
+	data_tiles = _store_tiles(tiles)
+	if data_tiles == None:
+		return False
+	
+	# Compress tilesheet data if necessary
+	if comp:
+		data_tiles = compress(data_tiles)
+		if data_tiles == None:
+			return False
+		print(f"Compressed {len(data_tiles)} bytes")
+	
+	# Write output data
+	print(f"Saving to {res_tiles_out}")
+	with open(res_tiles_out, "wb") as f:
+		f.write(data_tiles)
 	return True
 
 def cmd_decode_tilemap(args):
