@@ -75,6 +75,7 @@ def main(args):
 	parser_dec_image.add_argument("path_image_out", metavar="output.png", help="Image output path")
 	parser_dec_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	parser_dec_image.add_argument("-c", "--compressed", metavar="true/false", help="Decompress image resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_dec_image.add_argument("-i", "--indexed", metavar="true/false", help="Save as an indexed-color image (default false)", dest="indexed", type=parsebool, default=False)
 	
 	aname = "encode-image"
 	ahelp = "Encode an 8bpp image with an auto-generated palette"
@@ -87,6 +88,7 @@ def main(args):
 	parser_enc_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	parser_enc_image.add_argument("-c", "--compressed", metavar="true/false", help="Compress image resource on save (default true)", dest="compressed", type=parsebool, default=True)
 	parser_enc_image.add_argument("-d", "--dither", metavar="true/false", help="Dither image when quantizing (default false)", dest="dither", type=parsebool, default=False)
+	parser_enc_image.add_argument("-i", "--indexed", metavar="true/false", help="Read an indexed-color image and ignore palette (default false)", dest="indexed", type=parsebool, default=False)
 	
 	aname = "decode-tiles"
 	ahelp = "Decode a 4bpp tilesheet to a sheet image"
