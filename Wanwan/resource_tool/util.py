@@ -22,11 +22,17 @@ def parsebool(s):
 		return False
 	raise ValueError
 
-def col2rgb(c):
-	r = (c>>10)&31
-	g = (c>>5)&31
-	b = c&31
-	return ((r*255)//31,(g*255)//31,(b*255)//31)
+def col2rgb(c, top=255):
+	r = round(((c>>10)&31) * top / 31)
+	g = round(((c>>5)&31) * top / 31)
+	b = round((c&31) * top / 31)
+	return (r, g, b)
+
+def rgb2col(c, top=255):
+	r = round(c[0] * 31 / top) & 31
+	g = round(c[1] * 31 / top) & 31
+	b = round(c[2] * 31 / top) & 31
+	return r<<10 | g<<5 | b
 
 def rgbhex(rgb):
 	return f"#{rgb[0]&255:02X}{rgb[1]&255:02X}{rgb[2]&255:02X}"

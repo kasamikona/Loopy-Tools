@@ -1,7 +1,8 @@
 import struct
 from PIL import Image
-from util import check_files, make_dirs_for_file, load_palette, palette_to_rgba, print_palette_rgba
-from lzss_ww import decompress
+from util import check_files, make_dirs_for_file
+from util import col2rgb, load_palette, palette_to_rgba, print_palette_rgba, rgb2col
+from lzss_ww import compress, decompress
 
 def cmd_decode_image(args):
 	# Parse and verify command arguments
@@ -69,3 +70,83 @@ def cmd_decode_image(args):
 	make_dirs_for_file(im_out)
 	img.save(im_out)
 	return True
+
+def cmd_encode_image(args):
+	# Parse and verify command arguments
+	im_in = args.path_image_in
+	res_pal_in = args.path_res_pal_in
+	res_im_out = args.path_res_im_out
+	transp = args.transparent
+	comp = args.compressed
+	dither = args.dither
+	if not check_files(exist=[im_in, res_pal_in], noexist=[res_im_out]):
+		return False
+	print("Transparent: " + ("YES" if transp else "NO"))
+	print("Compressed: " + ("YES" if comp else "NO"))
+	print("Dither: " + ("YES" if dither else "NO"))
+	
+	# Read input data
+	try:
+		img = Image.open(im_in).convert("RGBA")
+	except Exception as e:
+		print("Error opening image")
+		return False
+	if img.width > 256 or img.height > 256:
+		print("Image dimensions too large (max 256x256)")
+		return False
+	if transp:
+		img_alpha = img.getchannel("A").convert("1")
+		img_alpha_px = img_alpha.load()
+	with open(res_pal_in, "rb") as f:
+		data_palette = f.read()
+	
+	# Load palette
+	data_palette = load_palette(data_palette)
+	if not data_palette:
+		return False
+	if transp:
+		data_palette = data_palette[1:]
+	palette_size = len(data_palette)
+	palette_rgba = palette_to_rgba(data_palette, first_transparent=False)
+	
+	# Make opaque by compositing over first color, so we can use dithering later
+	img = Image.alpha_composite(Image.new("RGBA", img.size, palette_rgba[0]), img).convert("RGB")
+	
+	# Extend palette to 256 colors and create an image with it
+	last_color = palette_rgba[-1]
+	if palette_size < 256:
+		palette_rgba += [last_color]*(256-palette_size)
+	palette_rgb_flat = [0]*(palette_size*3)
+	for i in range(palette_size):
+		palette_rgb_flat[i*3:i*3+3] = list(palette_rgba[i])[:3]
+	img_palette = Image.new("P", (16,16))
+	img_palette.putpalette(palette_rgb_flat)
+	
+	# Quantize to palette with optional dithering
+	dither_method = Image.Dither.FLOYDSTEINBERG if dither else Image.Dither.NONE
+	img_quantized = img.quantize(dither=dither_method, palette=img_palette)
+	
+	# Extract pixel values and reapply transparency
+	data_image = bytearray(img.width*img.height)
+	img_quantized_px = img_quantized.load()
+	for x in range(img.width):
+		for y in range(img.height):
+			cv = 0
+			if (not transp) or img_alpha_px[x,y]:
+				cv = min(img_quantized_px[x,y], palette_size-1)
+				if transp:
+					cv += 1
+			data_image[y*img.width+x] = cv
+	
+	# Serialize image and palette data
+	data_image = struct.pack("BB", img.width&255, img.height&255) + bytes(data_image)
+	
+	# Compress image data if necessary
+	if comp:
+		data_image = compress(data_image)
+	
+	# Write output data
+	print(f"Saving to {res_im_out}")
+	make_dirs_for_file(res_im_out)
+	with open(res_im_out, "wb") as f:
+		f.write(data_image)
