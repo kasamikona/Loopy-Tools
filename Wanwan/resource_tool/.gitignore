@@ -1,4 +1,6 @@
 *.png
 *.bin
 *.sh
+*.exe
+*.ini
 res/

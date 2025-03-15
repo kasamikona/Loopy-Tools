@@ -1,6 +1,8 @@
 import struct
 from PIL import Image
-from util import check_files, make_dirs_for_file, load_palette, palette_to_rgba, print_palette_rgba
+from util import check_files, make_dirs_for_file
+from util import load_palette, palette_to_rgba, print_palette_rgba
+from util import load_image_as_grayscale, load_image_as_indexed
 from lzss_ww import compress, decompress
 
 def _load_tiles(data):
@@ -81,12 +83,14 @@ def cmd_decode_tilesheet(args):
 	im_out = args.path_image_out
 	transp = args.transparent
 	comp = args.compressed
+	indexed = args.indexed
 	subpal = args.subpalette
 	use_graymap = res_pal_in == "-"
 	if not check_files(exist=[res_tiles_in] if use_graymap else [res_tiles_in, res_pal_in], noexist=[im_out]):
 		return False
 	print("Transparent: " + ("YES" if transp else "NO"))
 	print("Compressed: " + ("YES" if comp else "NO"))
+	print("Indexed-color: " + ("YES" if indexed else "NO"))
 	print(f"Subpalette: {subpal}")
 	
 	# Read input data
@@ -141,9 +145,19 @@ def cmd_decode_tilesheet(args):
 	img_width = 64
 	img_height = ((num_tiles+7)//8) * 8
 	print(f"Sheet contains {num_tiles} tiles, output in {img_width}x{img_height} image")
+	img_size = (img_width, img_height)
 
 	# Write output image
-	img = Image.new("RGBA", (img_width, img_height), color = (0,0,0,0))
+	if indexed:
+		img = Image.new("P", img_size, color=0)
+		if transp:
+			img.info["transparency"] = 0
+		palette_rgb_flat = [0]*16*3
+		for i in range(16):
+			palette_rgb_flat[i*3:i*3+3] = palette_rgba[i][:3]
+		img.putpalette(palette_rgb_flat)
+	else:
+		img = Image.new("RGBA", img_size, color=(0,0,0,0))
 	pix = img.load()
 	for t in range(num_tiles):
 		for tx in range(8):
@@ -151,7 +165,10 @@ def cmd_decode_tilesheet(args):
 				color_value = tiles[t][ty*8 + tx]
 				ix = (t&7)*8 + tx
 				iy = (t//8)*8 + ty
-				pix[ix,iy] = palette_rgba[color_value]
+				if indexed:
+					pix[ix,iy] = color_value
+				else:
+					pix[ix,iy] = palette_rgba[color_value]
 	print(f"Saving to {im_out}")
 	make_dirs_for_file(im_out)
 	img.save(im_out)
@@ -162,6 +179,7 @@ def cmd_encode_tilesheet(args):
 	im_in = args.path_image_in
 	res_tiles_out = args.path_res_tiles_out
 	comp = args.compressed
+	indexed = args.indexed
 	num_tiles = args.num_tiles
 	trim_end = False
 	if num_tiles < 1:
@@ -170,20 +188,27 @@ def cmd_encode_tilesheet(args):
 	if not check_files(exist=[im_in], noexist=[res_tiles_out]):
 		return False
 	print("Compressed: " + ("YES" if comp else "NO"))
+	print("Indexed-color: " + ("YES" if indexed else "NO"))
 	print("Number of tiles: " + str(num_tiles or "(from image)"))
 	
 	# Read input data
 	try:
-		img = Image.open(im_in).convert("RGBA")
+		img = Image.open(im_in)
 	except Exception as e:
 		print("Error opening image")
 		return False
-	pix = img.load()
 	num_columns = img.width // 8
 	num_rows = img.height // 8
 	print(f"Image contains {num_columns} columns x {num_rows} rows")
 	if num_tiles == None:
 		num_tiles = num_columns * num_rows
+	if indexed:
+		img = load_image_as_indexed(img, 16)
+	else:
+		img = load_image_as_grayscale(img, 16)
+	if img == None:
+		return False
+	pix = img.load()
 	
 	# Get tiles from input image
 	tiles = [None]*num_tiles
@@ -195,10 +220,7 @@ def cmd_encode_tilesheet(args):
 			for ty in range(8):
 				ix = (t%num_columns)*8 + tx
 				iy = (t//num_columns)*8 + ty
-				color = pix[ix,iy]
-				gray16 = round((sum(color[:3])/3)*15/255)
-				alpha1 = round(color[3]*1/255)
-				value = gray16 if alpha1 > 0 else 0
+				value =  pix[ix,iy]
 				if value > 0:
 					empty = False
 				tiledata[ty*8 + tx] = value
@@ -207,8 +229,8 @@ def cmd_encode_tilesheet(args):
 			last_nonempty = t
 	if trim_end and last_nonempty+1 != num_tiles:
 		diff = num_tiles - (last_nonempty+1)
-		print(f"Last {diff} cells in image are empty, trimming (specify num_tiles to override)")
 		num_tiles = last_nonempty+1
+		print(f"Last {diff} cells in image are empty, trimming to {num_tiles} tiles (specify num_tiles to override)")
 		if num_tiles < 1:
 			print("No tiles to encode")
 			return False

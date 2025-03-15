@@ -1,7 +1,9 @@
 import struct
 from PIL import Image
 from util import check_files, make_dirs_for_file
-from util import col2rgb, load_palette, palette_to_rgba, print_palette_rgba, rgb2col
+from util import load_palette, palette_to_rgba, print_palette_rgba
+from util import col2rgb, rgb2col
+from util import load_image_as_indexed
 from lzss_ww import compress, decompress
 
 def cmd_decode_image(args):
@@ -115,43 +117,13 @@ def cmd_encode_image(args):
 	if img.width > 256 or img.height > 256:
 		print("Image dimensions too large (max 256x256)")
 		return False
+	
+	# Get pixel values from image
 	if indexed:
-		if img.mode not in ["P", "PA"]:
-			print("Image is not an indexed-color format")
+		img = load_image_as_indexed(img, 256)
+		if img == None:
 			return False
-		if img.mode == "PA":
-			print("Warning: converting PA mode image to P mode")
-			img = img.convert("P")
-		
-		# Find transparent pixel values
-		transp_index = img.info.get("transparency", None)
-		transp_list = [False]*256
-		transp = False
-		if transp_index != None:
-			if type(transp_index) == int:
-				transp_list[transp_index] = True
-				transp = True
-			elif type(transp_index) == bytes:
-				for i in range(len(transp_index)):
-					if transp_index[i] >= 128:
-						transp_list[i] = True
-						transp = True
-		print("Detected transparency: " + ("YES" if transp else "NO"))
-		
-		# If has transparency, map transparent values to 0, others to 1+
 		data_image = list(img.getdata())
-		if transp:
-			print("Mapping all transparency to color 0")
-			pixel_value_map = list(range(256))
-			next_opaque = 1
-			for i in range(256):
-				if transp_list[i]:
-					pixel_value_map[i] = 0
-				else:
-					pixel_value_map[i] = next_opaque
-					next_opaque += 1
-			data_image = list(map(lambda x: pixel_value_map[x], data_image))
-		
 	else:
 		img = img.convert("RGBA")
 		if transp:

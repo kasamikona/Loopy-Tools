@@ -103,3 +103,50 @@ def make_dirs_for_file(filepath):
 
 def paths_equivalent(a, b):
 	return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
+
+def load_image_as_grayscale(img, max_colors=256):
+	max_colors = min(max(2, max_colors), 256)
+	img = Image.alpha_composite(Image.new("RGBA", img.size, (0,0,0,0)), img.convert("RGBA")).convert("L")
+	img.putdata([round(x*(max_colors-1)/255) for x in list(img.getdata())])
+	return img
+
+def load_image_as_indexed(img, max_colors=256):
+	img.load()
+	max_colors = min(max(2, max_colors), 256)
+	if img.mode not in ["P", "PA"]:
+		print("Image is not an indexed-color format")
+		return None
+	if img.mode == "PA":
+		#print("Warning: converting PA mode image to P mode")
+		img = img.convert("P")
+	transp_index = img.info.get("transparency", None)
+	transp_list = [False]*256
+	transp = False
+	if transp_index != None:
+		if type(transp_index) == int:
+			transp_list[transp_index] = True
+			transp = True
+		elif type(transp_index) == bytes:
+			for i in range(len(transp_index)):
+				if transp_index[i] >= 128:
+					transp_list[i] = True
+					transp = True
+	#print("Detected transparency: " + ("YES" if transp else "NO"))
+	if transp:
+		data_image = list(img.getdata())
+		print("Mapping all transparency to color 0")
+		pixel_value_map = list(range(256))
+		next_opaque = 1
+		for i in range(256):
+			if transp_list[i]:
+				pixel_value_map[i] = 0
+			else:
+				pixel_value_map[i] = next_opaque
+				next_opaque += 1
+		data_image = list(map(lambda x: pixel_value_map[x], data_image))
+		img.putdata(data_image)
+	max_used_color = max(list(img.getdata()))
+	if max_used_color >= max_colors:
+		print(f"Used palette exceeds maximum of {max_colors} colors")
+		return None
+	return img

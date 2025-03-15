@@ -73,9 +73,9 @@ def main(args):
 	parser_dec_image.add_argument("path_res_im_in", metavar="res_image.bin", help="Image resource file path")
 	parser_dec_image.add_argument("path_res_pal_in", metavar="res_palette.bin", help="Palette resource file path")
 	parser_dec_image.add_argument("path_image_out", metavar="output.png", help="Image output path")
-	parser_dec_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	parser_dec_image.add_argument("-c", "--compressed", metavar="true/false", help="Decompress image resource on load (default true)", dest="compressed", type=parsebool, default=True)
 	parser_dec_image.add_argument("-i", "--indexed", metavar="true/false", help="Save as an indexed-color image (default false)", dest="indexed", type=parsebool, default=False)
+	parser_dec_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	
 	aname = "encode-image"
 	ahelp = "Encode an 8bpp image with an auto-generated palette"
@@ -85,10 +85,10 @@ def main(args):
 	parser_enc_image.add_argument("path_image_in", metavar="input.png", help="Image input path")
 	parser_enc_image.add_argument("path_res_pal_in", metavar="res_palette.bin", help="Palette resource file path")
 	parser_enc_image.add_argument("path_res_im_out", metavar="res_image.bin", help="Image resource file output path")
-	parser_enc_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	parser_enc_image.add_argument("-c", "--compressed", metavar="true/false", help="Compress image resource on save (default true)", dest="compressed", type=parsebool, default=True)
 	parser_enc_image.add_argument("-d", "--dither", metavar="true/false", help="Dither image when quantizing (default false)", dest="dither", type=parsebool, default=False)
 	parser_enc_image.add_argument("-i", "--indexed", metavar="true/false", help="Read an indexed-color image and ignore palette (default false)", dest="indexed", type=parsebool, default=False)
+	parser_enc_image.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	
 	aname = "decode-tiles"
 	ahelp = "Decode a 4bpp tilesheet to a sheet image"
@@ -98,18 +98,20 @@ def main(args):
 	parser_dec_tiles.add_argument("path_res_tiles_in", metavar="res_tiles.bin", help="Tilesheet resource file path")
 	parser_dec_tiles.add_argument("path_res_pal_in", metavar="res_palette.bin", help="Palette resource file path, or \"-\" for grayscale")
 	parser_dec_tiles.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
-	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
 	parser_dec_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
+	parser_dec_tiles.add_argument("-i", "--indexed", metavar="true/false", help="Save as an indexed-color image (default false)", dest="indexed", type=parsebool, default=False)
 	parser_dec_tiles.add_argument("-s", "--subpalette", metavar="subpal", help="Subpalette index (default 0)", dest="subpalette", type=parsenum, default=0)
+	parser_dec_tiles.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
 	
 	aname = "encode-tiles"
 	ahelp = "Encode a 4bpp tilesheet from a sheet image"
 	afunc = cmd_encode_tilesheet
 	parser_enc_tiles = subparsers.add_parser(aname, prog=f"{progname} {aname}", help=ahelp)
 	parser_enc_tiles.set_defaults(action=afunc)
-	parser_enc_tiles.add_argument("path_image_in", metavar="input.png", help="Sheet image path (must have grayscale palette with/without transparency)")
+	parser_enc_tiles.add_argument("path_image_in", metavar="input.png", help="Sheet image path (must have grayscale palette or use indexed-color)")
 	parser_enc_tiles.add_argument("path_res_tiles_out", metavar="res_tiles.bin", help="Tilesheet resource file output path")
 	parser_enc_tiles.add_argument("-c", "--compressed", metavar="true/false", help="Compress tilesheet resource on save (default true)", dest="compressed", type=parsebool, default=True)
+	parser_enc_tiles.add_argument("-i", "--indexed", metavar="true/false", help="Read an indexed-color image (default false)", dest="indexed", type=parsebool, default=False)
 	parser_enc_tiles.add_argument("-n", "--num_tiles", metavar="num", help="Specify number of tiles in sheet (default up to last non-empty tile)", dest="num_tiles", type=parsenum, default=-1)
 	
 	aname = "decode-tilemap"
@@ -121,9 +123,9 @@ def main(args):
 	parser_dec_tmap.add_argument("path_res_tiles_in", metavar="res_tiles", help="Tilesheet resource file path")
 	parser_dec_tmap.add_argument("path_res_pal_in", metavar="res_palette", help="Palette resource file path")
 	parser_dec_tmap.add_argument("path_image_out", metavar="output.png", help="Sheet image output path")
+	parser_dec_tmap.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
 	parser_dec_tmap.add_argument("-b", "--screenb", metavar="true/false", help="Render screen B instead of A (default false)", dest="screenb", type=parsebool, default=False)
 	parser_dec_tmap.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default true)", dest="transparent", type=parsebool, default=True)
-	parser_dec_tmap.add_argument("-c", "--compressed", metavar="true/false", help="Decompress tilesheet resource on load (default true)", dest="compressed", type=parsebool, default=True)
 	
 	aname = "decode-palette"
 	ahelp = "Decode a palette to a grid image"
@@ -140,8 +142,8 @@ def main(args):
 	parser_derive_palette.set_defaults(action=afunc)
 	parser_derive_palette.add_argument("path_image_in", metavar="input.png", help="Image input path")
 	parser_derive_palette.add_argument("path_res_pal_out", metavar="res_palette.bin", help="Palette resource file output path")
-	parser_derive_palette.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	parser_derive_palette.add_argument("-p", "--palette_size", metavar="palette_size", help="Size of palette to generate (default 256)", dest="palsize", type=parsenum, default=256)
+	parser_derive_palette.add_argument("-t", "--transparent", metavar="true/false", help="Color 0 is transparent (default false)", dest="transparent", type=parsebool, default=False)
 	
 	aname = "decode-metasprite"
 	ahelp = "Decode a metasprite to a text representation"
