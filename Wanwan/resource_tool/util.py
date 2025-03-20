@@ -1,5 +1,6 @@
 import os
 import struct
+from PIL import Image
 
 def parsenum(x):
 	x = x.lower()
