@@ -8,10 +8,10 @@ I feel that the demographic of the Loopy including the modern community is not a
 I can't stop you from doing anything, but I will blacklist you and certainly won't provide support if you do so.
 You may contact me privately if you want more of an explanation of why this notice is here.
 
-## Related repositories
+## Related Repositories
 
-[Loopy-Schematics](https://github.com/kasamikona/Loopy-Schematics): Schematics for various parts and accessories.
-[loopy-homebrew-template](https://github.com/kasamikona/loopy-homebrew-template): A barebones template for homebrew.
+- [Loopy-Schematics](https://github.com/kasamikona/Loopy-Schematics): Schematics for various parts and accessories.
+- [loopy-homebrew-template](https://github.com/kasamikona/loopy-homebrew-template): A barebones template for homebrew.
 
 ## Repo Contents
 
