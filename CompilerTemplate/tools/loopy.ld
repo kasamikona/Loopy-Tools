@@ -123,3 +123,6 @@ __stack_end = ORIGIN(RAM) + LENGTH(RAM) + STACKSIZE;
 __vbr_link_start = ADDR(.vectors);
 
 ENTRY(start);
+
+INCLUDE "tools/address_sh7021.ld"
+INCLUDE "tools/address_loopy.ld"

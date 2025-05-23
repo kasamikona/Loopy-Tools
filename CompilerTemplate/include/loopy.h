@@ -1,18 +1,10 @@
-#ifndef _INC_LOOPY_H_
-#define _INC_LOOPY_H_
+#pragma once
 
+#include "sh7021.h"
 #define F_CPU 16000000
 
-#include "sh7021_peripherals.h"
-
-static void maskInterrupts(int mask) {
-    uint32_t sr;
-    mask &= 0xF;
-    mask <<= 4;
-    __asm__ __volatile__("STC SR,%0\n\t" : "=r" (sr) : : );
-    sr &= 0xFFFFFF0F;
-    sr |= mask;
-    __asm__ __volatile__("LDC %0,SR\n\t" : : "r" (sr) : );
-}
-
-#endif
+#include "loopy/bios.h"
+#include "loopy/vdp.h"
+#include "loopy/constants.h"
+#include "loopy/macros.h"
+#include "loopy/extrafuncs.h"

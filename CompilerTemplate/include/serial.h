@@ -1,17 +1,10 @@
-#ifndef _INC_SERIAL_H_
-#define _INC_SERIAL_H_
+#pragma once
 
-void serialBegin(int baud);
-void serialWrite(char c);
-void serialPrint(char *s);
-int serialAvailable();
-char serialRead();
+void serial_begin(int baud);
+void serial_write(char c);
+void serial_print(char *s);
+int serial_available();
+char serial_read();
 
-void midiBegin(int baud);
-void midiWrite(char c);
-void midiPrint(char *s);
-
-void serial_RxI0();
-void serial_ERI0();
-
-#endif
+void serial_isrRxI0();
+void serial_isrERI0();
