@@ -1,21 +1,20 @@
 # Kasami's Loopy Tools Collection
 
 This is a collection of tools, scripts and info that I have created/gathered in my research and
-development work on the Casio Loopy. There isn't a whole lot here yet. The collection will grow as
-time goes on, but some parts may split off into dedicated repos.  
+development work on the Casio Loopy. I'm working towards splitting some parts off into dedicated repos.
 
 **Please do not use my tools for creating controversial or offensive content.**  
 I feel that the demographic of the Loopy including the modern community is not a suitable place for this.
 I can't stop you from doing anything, but I will blacklist you and certainly won't provide support if you do so.
-You may contact me privately if you want more of an explanation of why this notice is here.  
+You may contact me privately if you want more of an explanation of why this notice is here.
 
 ## Related repositories
 
 [Loopy-Schematics](https://github.com/kasamikona/Loopy-Schematics): Schematics for various parts and accessories.
+[loopy-homebrew-template](https://github.com/kasamikona/loopy-homebrew-template): A barebones template for homebrew.
 
 ## Repo Contents
 
-- CompilerTemplate: A basic C++ toolchain for compiling very simple Loopy code (needs new example code...)
 - Documentation: Research findings and datasheets.
 - Hardware: Parts for custom designed hardware.
 - SerialDumper: A tool to dump cartridges using the Loopy console itself with a serial mod.
@@ -28,4 +27,4 @@ Documentation and informational sections are provided on a "do what you like" ba
 Code sections may contain an appropriate LICENSE.txt to refer to,
 or may have no license in which case please ask me or treat it as non-free.
 In general I am assuming non-commercial use and provide no warranty.
-If you have any doubts about these points, please ask!  
+If you have any doubts about these points, please ask!
