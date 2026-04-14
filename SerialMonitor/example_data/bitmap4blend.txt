@@ -1,0 +1,8 @@
+# VDP video registers (this should be split up into the relevant registers)
+0x0C058000       16  0x4000
+
+# First 5 colors of palette
+VDP.PALETTE      16  0x0A
+
+# Full bitmap area
+VDP.BITMAP_VRAM  16  0x10000
