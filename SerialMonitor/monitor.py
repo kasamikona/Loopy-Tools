@@ -84,7 +84,7 @@ def run_cmd_help(cmd, suffix, args, protocol):
 		matched_help_func(matched_cmd, matched_suffix, None, None)
 		return True
 
-cmd_map["help"] = (run_cmd_help, None, "Show a list of commands")
+cmd_map["help"] = (run_cmd_help, None, "Show a list of commands, or help for a given command")
 
 def match_cmd_suffix(cmd):
 	# Normal (untyped) commands
