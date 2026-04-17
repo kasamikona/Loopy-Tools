@@ -28,6 +28,7 @@ def run_cmd_read_nbit(cmd, suffix, args, protocol):
 		print(f"Invalid alignment for {data_type.nbits}-bit access: 0x{address:08X}")
 		return False
 
+	protocol.flush_in()
 	value = protocol.read_value(address, data_type)
 	if value == None:
 		print("Timed out")
@@ -60,6 +61,7 @@ def run_cmd_write_nbit(cmd, suffix, args, protocol):
 		return False
 
 	protocol.write_value(address, value, data_type)
+	protocol.flush_out()
 	return True
 
 def run_cmd_dump_nbit(cmd, suffix, args, protocol):
@@ -96,6 +98,7 @@ def run_cmd_dump_nbit(cmd, suffix, args, protocol):
 
 	count = length // data_type.nbytes
 	with open(out_name, "wb") as f_out:
+		protocol.flush_in()
 		if not protocol.read_to_stream(address, count, data_type, f_out):
 			print("Timed out")
 			return False
@@ -130,6 +133,7 @@ def run_cmd_burst_nbit(cmd, suffix, args, protocol):
 		if not protocol.write_from_stream(address, count, data_type, f_in):
 			print("File error")
 			return False
+		protocol.flush_out()
 
 	return True
 
@@ -171,6 +175,7 @@ def run_cmd_hist_nbit(cmd, suffix, args, protocol):
 	if histcount < 100000:
 		percent_modulo = 10
 
+	protocol.flush_in()
 	for i in range(histcount):
 		value = protocol.read_value(address, data_type)
 		if value == None:
@@ -247,7 +252,7 @@ def run_cmd_baud(cmd, suffix, args, protocol):
 		# Attainable standard rates
 		300, 1200, 2400, 4800, 9600, 19200, 38400,
 		# Attainable sensible nonstandard rates
-		31250, 50000, 62500, 100000, 125000, 250000, 500000
+		31250, 50000, 62500, 100000, 125000, 250000
 	]
 	valid_rates = sorted(list(set(valid_rates)))
 	valid_rates_str = ", ".join([str(x) for x in valid_rates])

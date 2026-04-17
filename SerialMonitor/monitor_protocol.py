@@ -106,11 +106,13 @@ class Protocol:
 			baud = INITIAL_BAUD
 		try:
 			self.serial = serial.Serial(port_name, timeout=1, baudrate=baud)
+			time.sleep(0.1)
+			self.flush_in()
 		except serial.SerialException:
 			self.serial = None
 			return False
 		return True
-	
+
 	def disconnect(self):
 		if self.serial == None:
 			return
@@ -159,9 +161,9 @@ class Protocol:
 	def flush_in(self):
 		if self.serial == None or not self.serial.is_open:
 			raise ValueError("Port not open")
+		time.sleep(0.01)
 		self.serial.reset_input_buffer()
-		#while self.serial.in_waiting > 0:
-		#	self.serial.reset_input_buffer()
+		self.serial.read_all()
 
 	def flush_out(self):
 		if self.serial == None or not self.serial.is_open:
@@ -311,6 +313,8 @@ class Protocol:
 		elif timeout < 0:
 			timeout = timeout_was
 
+		self.flush_out()
+		self.flush_in()
 		self.serial.write(struct.pack(">BIB", CMD_CALL, addr, len(args)))
 		for arg in args:
 			self.serial.write(struct.pack(f">I", arg&0xFFFFFFFF))

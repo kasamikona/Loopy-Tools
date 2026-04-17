@@ -11,6 +11,8 @@ from monitor_protocol import Protocol, DataType
 from monitor_util import try_parse_num
 import monitor_addresses as addresses
 
+ENABLE_DIRECT_MODE = True
+
 PTR_TYPE  = DataType.LONG
 SIZE_TYPE = DataType.LONG
 MIN_TYPE  = DataType.BYTE
@@ -106,9 +108,6 @@ def parse_command(args, protocol):
 		return False
 	cmd = args.pop(0)
 
-	# Flush serial input before processing any command
-	protocol.flush_in()
-
 	if cmd.lower() == "exit":
 		exit()
 
@@ -122,18 +121,18 @@ def parse_command(args, protocol):
 
 def main(args, prog):
 	protocol = Protocol()
-	#if len(args) > 0:
-	if len(args) == 1:
+	if (len(args) > 1 and ENABLE_DIRECT_MODE) or len(args) == 1:
 		port_name = args[0]
 		if not protocol.connect(port_name):
 			print(f"Failed to open port {port_name}, check connection.")
 			print("Available ports: ", ", ".join(protocol.list_ports()))
 			return False
-		if len(args) > 1:
+		if len(args) > 1 and ENABLE_DIRECT_MODE:
 			try:
 				return parse_command(args[1:], protocol)
 			except (KeyboardInterrupt, EOFError):
-				#print() # this fixes some dumb error
+				# this fixed "some dumb error" but I didn't write down what error, so *shrug*
+				#print()
 				return False
 		else:
 			print("Use command \"help\" for a list of commands.")
@@ -150,15 +149,18 @@ def main(args, prog):
 					parse_command(shlex.split(inp), protocol)
 					print()
 			except (KeyboardInterrupt, EOFError):
-				#print() # this fixes some dumb error
+				# this fixed "some dumb error" but I didn't write down what error, so *shrug*
+				#print()
 				pass
 			return True
 	else:
-		#print(f"Interactive: {prog} <port>")
-		#print(f"Direct mode: {prog} <port> <command> [command args...]")
-		#print("Use command \"help\" for a list of commands.")
-		#print()
-		print(f"Syntax: {prog} <port>")
+		if ENABLE_DIRECT_MODE:
+			print(f"Interactive: {prog} <port>")
+			print(f"Direct mode: {prog} <port> <command> [command args...]")
+			print("Use command \"help\" for a list of commands.")
+			print()
+		else:
+			print(f"Syntax: {prog} <port>")
 		print("Available ports: ", ", ".join(protocol.list_ports()))
 	return False
 
