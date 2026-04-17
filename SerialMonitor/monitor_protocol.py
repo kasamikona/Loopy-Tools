@@ -123,12 +123,9 @@ class Protocol:
 	def list_ports(self):
 		return [d.device for d in serial_list_ports.comports()]
 
-	def set_baud(self, baud, tell=True, force=False):
+	def set_baud(self, baud, tell=True):
 		if self.serial == None or not self.serial.is_open:
 			raise ValueError("Port not open")
-
-		if self.serial.baudrate == baud and not force:
-			return
 
 		# Change without telling first to check if rate is fine
 		baud_was = self.serial.baudrate
