@@ -58,7 +58,7 @@ def run_cmd_savestate(cmd, suffix, args, protocol):
 					print(f"Bad length in line: {line}")
 					return False
 
-				name = None
+				name = f"0x{addr:08X}"
 				if len(parts) >= 4:
 					name = parts[3]
 
@@ -70,12 +70,11 @@ def run_cmd_savestate(cmd, suffix, args, protocol):
 		with open(fp_state, "wb") as f_state:
 			done_len = 0
 			f_state.write(b"LPSTATE\0")
-			util.file_write_align(f_state, 4)
 			for block in blocks:
 				addr, length, data_type, name = block
 
 				pct_done = round(100 * done_len / total_len)
-				progress_str = f"{pct_done}%".ljust(6) + f"Reading 0x{addr:08X}"
+				progress_str = f"{pct_done}%".ljust(6) + f"Reading {name}"
 				print("\r"+progress_str.ljust(line_erase_len), end="")
 				line_erase_len = len(progress_str)
 
