@@ -27,7 +27,7 @@ DATA_LABELS = { # label -> (addr, data_len); length in bytes
 	"VDP.HCOUNT":            (0x0C058002, None),
 	"VDP.VCOUNT":            (0x0C058004, None),
 	"VDP.TRIGGER":           (0x0C058006, None),
-	"VDP.SYNC_IRQ_CTRL":     (0x0C058008, None),
+	"VDP.RASTER_DMA_CTRL":   (0x0C058008, None),
 	# Bitmaps
 	"VDP.BM_SCROLLX":        (0x0C059000, 8),
 	"VDP.BM_SCROLLY":        (0x0C059008, 8),
@@ -53,7 +53,7 @@ DATA_LABELS = { # label -> (addr, data_len); length in bytes
 	"VDP.BACKDROP_A":        (0x0C05B008, None),
 	"VDP.CAPTURE_CTRL":      (0x0C05B00A, None),
 	# Interrupts
-	"VDP.IRQ0_NMI_CTRL":     (0x0C05C000, None),
+	"VDP.INTERRUPT_CTRL":    (0x0C05C000, None),
 	"VDP.IRQ0_HCMP":         (0x0C05C002, None),
 	"VDP.IRQ0_VCMP":         (0x0C05C004, None),
 	# Controller & Printer
