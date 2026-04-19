@@ -64,7 +64,7 @@ def run_cmd_write_nbit(cmd, suffix, args, protocol):
 	protocol.flush_out()
 	return True
 
-def run_cmd_dump_nbit(cmd, suffix, args, protocol):
+def run_cmd_fread_nbit(cmd, suffix, args, protocol):
 	if args == None or len(args) != 3:
 		print(f"Syntax: {cmd}{suffix} <address> <length> <output.bin>")
 		util.print_addr_help()
@@ -105,7 +105,7 @@ def run_cmd_dump_nbit(cmd, suffix, args, protocol):
 
 	return True
 
-def run_cmd_burst_nbit(cmd, suffix, args, protocol):
+def run_cmd_fwrite_nbit(cmd, suffix, args, protocol):
 	if args == None or len(args) != 2:
 		print(f"Syntax: {cmd}{suffix} <address> <input.bin>")
 		util.print_addr_help()

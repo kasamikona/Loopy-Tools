@@ -101,9 +101,9 @@ Data loaded/saved in files uses this ordering.
 The first few commands map directly to low-level features implemented in the ROM.
 
 - `read# <address>`: Read a single address and print the value
-- `write# <address> <value>` Write a value to a single address; **writes not verified!**
-- `dump# <address> <length> <output.bin>`: Read a range of addresses and save the contents to a file
-- `burst# <address> <input.bin>`: Load a file and write it to memory starting at the given address
+- `write# <address> <value>` Write a value to a single address (**writes not verified!**)
+- `fread# <address> <length> <output.bin>`: Read a range of memory to a local file
+- `fwrite# <address> <input.bin>`: Write a range of memory from a local file
 - `call <func> [args...]`: Call a known function with up to 8 numeric arguments
 - `midiport <midi port>`: Pass through a local MIDI input to the console
 - `baud <rate>`: Change the baud rate (recommended for slow commands)
@@ -119,16 +119,16 @@ I can then attempt to mitigate that while also potentially improving community k
 
 These commands implement more complex actions built on the low-level functionality.
 
-- `hist# <address> <count> <log.txt>`: Read a value repeatedly and log a histogram of its values over time (very slow)
+- `hist# <address> <count> <log.txt>`: Read an address repeatedly and log a histogram of values over time (very slow)
 - `savestate <template.txt> <output.state>`: Save a state file using a template (slow)
 - `loadstate <input.state>`: Load a state file (slow)
 - `screencap <capture mode> <output name>`: Capture the current screen contents using scanline capture (slow)
-- `movemotor <steps>`: Directly control the printer motor (UNSAFE)
+- `movemotor <steps>`: Move the printer motor forward or backward (UNSAFE)
 
 ### Meta
 
 - `help [command]`: Show a list of commands, or help for a given command
-- `labels`: List labels (and sizes) for all commands taking memory addresses/ranges
+- `labels`: List labels (and sizes) for commands taking memory addresses/ranges
 - `listfuncs`: List known callable functions for the `call` command
 - `exit`: 
 
