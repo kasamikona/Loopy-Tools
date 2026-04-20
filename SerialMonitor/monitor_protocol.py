@@ -98,9 +98,14 @@ class Protocol:
 		self.serial = None
 		self.is_midi_passthru = False
 
+	@property
+	def is_connected(self):
+		return self.serial != None and self.serial.is_open
+
 	def connect(self, port_name, baud=None):
-		if self.serial != None:
+		if self.is_connected:
 			raise ValueError("Port already open")
+
 		self.is_midi_passthru = False
 		if baud == None:
 			baud = INITIAL_BAUD
@@ -114,9 +119,7 @@ class Protocol:
 		return True
 
 	def disconnect(self):
-		if self.serial == None:
-			return
-		if self.serial.is_open:
+		if self.is_connected:
 			self.serial.close()
 		self.serial = None
 
@@ -124,7 +127,7 @@ class Protocol:
 		return [d.device for d in serial_list_ports.comports()]
 
 	def set_baud(self, baud, tell=True):
-		if self.serial == None or not self.serial.is_open:
+		if not self.is_connected:
 			raise ValueError("Port not open")
 
 		# Change without telling first to check if rate is fine
@@ -140,7 +143,8 @@ class Protocol:
 
 		if tell:
 			self.serial.write(struct.pack(">BI", CMD_BAUD, baud))
-		self.serial.flush()
+		self.flush_out()
+
 		time.sleep(BAUD_CHANGE_DELAY)
 		self.serial.baudrate = baud
 
@@ -148,23 +152,26 @@ class Protocol:
 		self.set_baud(baud=INITIAL_BAUD, tell=tell)
 
 	def get_baud(self):
-		if self.serial == None or not self.serial.is_open:
+		if not self.is_connected:
 			raise ValueError("Port not open")
+
 		return self.serial.baudrate
 
 	def get_default_baud(self):
 		return INITIAL_BAUD
 
 	def flush_in(self):
-		if self.serial == None or not self.serial.is_open:
+		if not self.is_connected:
 			raise ValueError("Port not open")
+
 		time.sleep(0.01)
 		self.serial.reset_input_buffer()
 		self.serial.read_all()
 
 	def flush_out(self):
-		if self.serial == None or not self.serial.is_open:
+		if not self.is_connected:
 			raise ValueError("Port not open")
+
 		self.serial.flush()
 
 	def read_bytes(self, address, count, data_type):
