@@ -7,6 +7,7 @@ MAX_READ_SIZE = 1024
 MAX_WRITE_SIZE = 256
 INITIAL_BAUD = 38400
 BAUD_CHANGE_DELAY = 0.2
+RESET_DELAY = 1.3
 
 CMD_READ8   = 0x01
 CMD_READ16  = 0x02
@@ -344,3 +345,31 @@ class Protocol:
 		if ret_type == None:
 			return 0
 		return struct.unpack(">I", ret_data)[0] & ret_type.data_mask
+
+	def soft_reset(self):
+		if not self.is_connected:
+			raise ValueError("Port not open")
+
+		WDT_TCSR_TCNT_W = 0x5FFFFB8
+		WDT_RSTCSR_W    = 0x5FFFFBA
+
+		# Set up the watchdog to immediately reset the console
+		self.write_value(WDT_TCSR_TCNT_W, 0xA500, DataType.WORD) # disable watchdog & clear counter
+		self.write_value(WDT_RSTCSR_W,    0x5A40, DataType.WORD) # enable system reset, power-on reset type
+		self.write_value(WDT_TCSR_TCNT_W, 0xA560, DataType.WORD) # enable watchdog, fastest clock
+
+		# Set to default baud rate
+		baud_old = self.get_baud()
+		self.reset_baud(tell=False)
+		baud_changed = (baud_old != self.get_baud())
+
+		# Wait for finish rebooting
+		time.sleep(RESET_DELAY)
+		comm_check = self.read_value(0, DataType.BYTE)
+		if comm_check == None:
+			return False
+
+		# Set back to previous baud rate
+		self.set_baud(baud_old)
+
+		return True

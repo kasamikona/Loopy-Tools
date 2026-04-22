@@ -4,8 +4,6 @@ from monitor_protocol import DataType
 import monitor_util as util
 import monitor_addresses as addresses
 
-RESET_DELAY = 1.3
-
 PTR_TYPE  = DataType.LONG
 SIZE_TYPE = DataType.LONG
 MIN_TYPE  = DataType.BYTE
@@ -284,29 +282,10 @@ def run_cmd_reset(cmd, suffix, args, protocol):
 		print(f"Syntax: {cmd}")
 		return False
 
-	WDT_TCSR_TCNT_W = 0x5FFFFB8
-	WDT_RSTCSR_W    = 0x5FFFFBA
-
-	# Set up the watchdog to immediately reset the console
 	print("Attempting watchdog reset...")
-	protocol.write_value(WDT_TCSR_TCNT_W, 0xA500, DataType.WORD) # disable watchdog & clear counter
-	protocol.write_value(WDT_RSTCSR_W,    0x5A40, DataType.WORD) # enable system reset, power-on reset type
-	protocol.write_value(WDT_TCSR_TCNT_W, 0xA560, DataType.WORD) # enable watchdog, fastest clock
-
-	# Set to default baud rate
-	baud_old = protocol.get_baud()
-	protocol.reset_baud(tell=False)
-	baud_changed = (baud_old != protocol.get_baud())
-
-	# Wait for finish rebooting
-	time.sleep(RESET_DELAY)
-	comm_check = protocol.read_value(0, DataType.BYTE)
-	if comm_check == None:
+	if not protocol.soft_reset():
 		print("Can't communicate with console")
 		return False
+
 	print("Done")
-
-	# Set back to previous baud rate
-	protocol.set_baud(baud_old)
-
 	return True
