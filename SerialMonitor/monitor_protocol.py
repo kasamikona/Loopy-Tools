@@ -373,3 +373,16 @@ class Protocol:
 		self.set_baud(baud_old)
 
 		return True
+
+	def check_connection(self):
+		sanity_addr = 0x400
+		sanity_type = DataType.LONG
+		sanity_val = 0xC7066703
+		sanity_timeout = 0.2
+
+		timeout_was = self.serial.timeout
+		self.serial.timeout = sanity_timeout
+		read_val = self.read_value(sanity_addr, sanity_type)
+		self.serial.timeout = timeout_was
+
+		return read_val != None and read_val == sanity_val
