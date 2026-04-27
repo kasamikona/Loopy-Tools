@@ -12,6 +12,7 @@ from monitor_util import try_parse_num
 import monitor_addresses as addresses
 
 ENABLE_DIRECT_MODE = True
+CHECK_ON_CONNECT = True
 
 PTR_TYPE  = DataType.LONG
 SIZE_TYPE = DataType.LONG
@@ -126,6 +127,9 @@ def main(args, prog):
 		if not protocol.connect(port_name):
 			print(f"Failed to open port {port_name}, check connection.")
 			print("Available ports: ", ", ".join(protocol.list_ports()))
+			return False
+		if CHECK_ON_CONNECT and not protocol.check_connection():
+			print("Failed to communicate with console")
 			return False
 		if len(args) > 1 and ENABLE_DIRECT_MODE:
 			try:
