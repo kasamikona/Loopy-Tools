@@ -23,6 +23,7 @@ import monitor_cmd_lowlevel as cmd_low
 import monitor_cmd_highlevel as cmd_high
 import monitor_cmd_meta as cmd_meta
 import monitor_cmd_midi as cmd_midi
+import fuzzer.cmd_fuzz as cmd_fuzz
 
 cmd_map = {
 	"read":       (cmd_low.run_cmd_read_nbit,   ["8","16","32"], "Read a single address and print the value"),
@@ -40,6 +41,7 @@ cmd_map = {
 	"midiport":   (cmd_midi.run_cmd_midiport,   None,            "Pass through a local MIDI input to the console"),
 	"baud":       (cmd_low.run_cmd_baud,        None,            "Change the baud rate (recommended for slow commands)"),
 	"reset":      (cmd_low.run_cmd_reset,       None,            "Attempt to reset the console via software"),
+	"fuzz":       (cmd_fuzz.run_cmd_fuzz,       None,            "Run fuzzing script (advanced use only)"),
 }
 
 def run_cmd_help(cmd, suffix, args, protocol):
