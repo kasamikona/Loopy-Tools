@@ -61,10 +61,6 @@ def irq0fuzz_setup(protocol):
 		print("Failed to communicate with console")
 		return False
 
-	test_baud = 125000
-	if protocol.get_baud() != test_baud:
-		protocol.set_baud(test_baud)
-
 	if not common.setup_ram_vectable(protocol):
 		print("Failed to move vector table")
 		return False
@@ -75,6 +71,9 @@ def irq0fuzz_setup(protocol):
 	flag_addr = _addr
 	_addr = common.align4(_addr + 2)
 
+	GBR_OCPM = 0x05FFFF00
+	PAD_WORD = 0x0009
+
 	# Patch NMI to clear DMAOR:NMIF so it doesn't crash
 	nmi_vec_addr = _addr
 	nmi_vec_num = 11
@@ -82,7 +81,7 @@ def irq0fuzz_setup(protocol):
 		0x2F16, # mov.l r1,@-r15
 		0x2F06, # mov.l r0,@-r15
 		0x4F13, # stc.l gbr,@-r15
-		0xD105, # mov.l @(ptr_ocpm,pc),r1
+		0xD105, # mov.l @(gbr_ocpm,pc),r1
 		0x411E, # ldc r1,gbr
 		0xC524, # mov.w @(0x48,gbr),r0 ;DMAOR
 		0xE001, # mov #0x1,r0
@@ -92,11 +91,10 @@ def irq0fuzz_setup(protocol):
 		0x61F6, # mov.l @r15+,r1
 		0x002B, # rte
 		0x0009, # _nop
-		# pad
-		0x0009,
-		# ptr_ocpm=
-		0x05FF,
-		0xFF00
+		PAD_WORD,
+		# gbr_ocpm=
+		common.hiword(GBR_OCPM),
+		common.loword(GBR_OCPM)
 	]
 	common.write_opcodes(protocol, nmi_vec_code, nmi_vec_addr)
 	_addr = common.align4(_addr + len(nmi_vec_code)*2)

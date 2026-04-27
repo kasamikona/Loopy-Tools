@@ -117,6 +117,8 @@ def run_fuzz_reduce(protocol, addr_spec, test_setup_func, test_check_func, max_w
 
 	# Initial random writes: Write random values until the check passes
 
+	print_and_log("[Initial Random Writes]", log_file)
+
 	if not test_setup_func(protocol):
 		print("Setup failed")
 		return False
@@ -124,7 +126,6 @@ def run_fuzz_reduce(protocol, addr_spec, test_setup_func, test_check_func, max_w
 		print("Check passing without any writes!")
 		return False
 
-	print_and_log("[Initial Random Writes]", log_file)
 	print(f"Writing up to {max_writes} random values...")
 	write_list = []
 	while True:
